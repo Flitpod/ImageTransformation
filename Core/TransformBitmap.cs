@@ -37,7 +37,7 @@ namespace Core
 
     public enum InterpolationTypes
     {
-        None, Dir4_FromSource, Dir8_FromSource, Dir4_ToDestination, Dir8_ToDestination, Floating_FromSource
+        None, Floating_FromSource, Dir4_FromSource, Dir8_FromSource, Dir4_ToDestination, Dir8_ToDestination
     }
 
     public class TransformBitmap
@@ -108,7 +108,7 @@ namespace Core
             }
         }
 
-        public static unsafe void ExecuteBackward(Bitmap source, ref Bitmap result, Matrix transformation, InterpolationTypes interpolationType = InterpolationTypes.None, double weightCloserNeighbour = 0.25)
+        public static unsafe void ExecuteBackward(Bitmap source, ref Bitmap result, Matrix transformation, InterpolationTypes interpolationType = InterpolationTypes.Floating_FromSource, double weightCloserNeighbour = 0.25)
         {
             // null and size checks
             CheckBitmaps(source, ref result);
@@ -168,9 +168,9 @@ namespace Core
                             {
                                 Values = new double[3, 1]
                                 {
-                                { row }, // row
-                                { col }, // col
-                                { 1 }  // homogenious
+                                    { row }, // row
+                                    { col }, // col
+                                    { 1 }  // homogenious
                                 }
                             };
 
@@ -225,7 +225,7 @@ namespace Core
                 return;
             }
 
-            // calculation of the transformation
+            // calculation of the transformation with other interpolation types
             {
                 // get data for transformation
                 int height = source.Height;
@@ -276,7 +276,7 @@ namespace Core
                                 for (int i = 0; (i < 3); i++)
                                     ptrDest[i] = 0;
                         }
-                        //else if (interpolationType == InterpolationTypes.Floating_FromSource)
+                        /*//else if (interpolationType == InterpolationTypes.Floating_FromSource)
                         //{
                         //    // pointer to the source pixel and for the surronding pixels
                         //    ptrSrc = (byte*)(ptrSrc0 + rowSrc * stride + colSrc * pixelFormat);
@@ -367,7 +367,7 @@ namespace Core
                         //            }
                         //        }
                         //    }
-                        //}
+                        //}*/
                         else if (interpolationType == InterpolationTypes.Dir4_FromSource)
                         {
                             int[] pixelValues = new int[3];
