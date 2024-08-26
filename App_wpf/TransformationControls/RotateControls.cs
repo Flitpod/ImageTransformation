@@ -15,35 +15,6 @@ using System.Windows.Shapes;
 
 namespace App_wpf.TransformationControls
 {
-    public class VisiblityConverter
-    {
-        bool IsVisible;
-
-        public System.Windows.Visibility Visiblity
-        {
-            get
-            {
-                if (IsVisible)
-                {
-                    return Visibility.Visible;
-                }
-                else
-                {
-                    return Visibility.Hidden;
-                }
-            }
-        }
-
-        public VisiblityConverter(CheckBox checkBox)
-        {
-            this.IsVisible = checkBox.IsChecked == true;
-            checkBox.Checked += (s, e) =>
-            {
-                this.IsVisible = checkBox.IsChecked == true;
-            };
-        }
-    }
-
     public class RotateControls : Controls
     {
         public UIElement Controls { get; private set; }
@@ -99,12 +70,6 @@ namespace App_wpf.TransformationControls
 
             // create combobox for interpolation options
             ComboBox comboBox = new ComboBox();
-            //Binding bindingCheckbox = new Binding("Visiblity")
-            //{
-            //    Source = new VisiblityConverter(checkBox),
-            //    Mode = BindingMode.OneWay,
-            //};
-            //comboBox.SetBinding(ComboBox.VisibilityProperty, bindingCheckbox);
             comboBox.Items.Add(InterpolationTypes.None.ToString());
             comboBox.Items.Add(InterpolationTypes.Floating_FromSource.ToString());
             comboBox.Items.Add(InterpolationTypes.Dir4_FromSource.ToString());
@@ -118,6 +83,7 @@ namespace App_wpf.TransformationControls
             Grid.SetColumn(comboBox, 3);
             grid.Children.Add(comboBox);
             this.IntepolationType = comboBox;
+
             // visibility changes
             checkBox.Click += (s, e) =>
             {
