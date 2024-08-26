@@ -161,6 +161,7 @@ namespace App_wpf.TransformationControls
             // create close button
             Button button = new Button();
             button.Content = "Close";
+            button.Margin = new Thickness(0,0,2,0);
             Grid.SetColumn(button, 6);
             grid.Children.Add(button);
             this.CloseBtn = button;

@@ -51,6 +51,7 @@ namespace ImageTransformation.App
                 this.bitmapDst = new Bitmap(this.bitmapSrc);
                 this.imageSource.Source = this.bitmapSrc.GetBitmapSource();
                 this.imageResult.Source = this.bitmapDst.GetBitmapSource();
+                label_MetaData.Content = $"{openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
             }
         }
 
@@ -63,17 +64,6 @@ namespace ImageTransformation.App
                 this.bitmapDst.Save(saveFileDialog.FileName);
             }
         }
-
-        //private void sliderRotation_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        //{
-        //    if (bitmapSrc == null) return;
-        //    // this.transformation = Transformations.Rotation(this.sliderRotation.Value);
-        //    // TransformBitmap.ExecuteForward(this.bitmapSrc, ref this.bitmapDst, this.transformation);
-        //    //TransformBitmap.ExecuteBackward(this.bitmapSrc, ref this.bitmapDst, this.transformation, InterpolationTypes.Floating_FromSource, weightCloserNeighbour: 0.25);
-        //    Core.Matrix transformation = Transformations.Rotation(this.sliderRotation.Value, this.bitmapSrc.Height / 2.0, this.bitmapSrc.Width / 2.0);
-        //    TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation);
-        //    RefreshImages();
-        //}
 
         private void ExecuteRotateTransformation()
         {

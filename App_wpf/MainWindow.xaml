@@ -5,25 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ImageTransformation.App"
         mc:Ignorable="d"
-        Title="Rotate Image" Height="600" Width="1200">
+        Title="Rotate Image" Height="600" Width="1200" >
     <Grid x:Name="WindowGrid" DataContext="MainWindow">
         <!-- Divide the grid into rows-->
         <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Menu bar -->
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Open" Click="click_OpenFileDialog"/>
-                <MenuItem Header="_Save" Click="click_SaveFileDialog"/>
-            </MenuItem>
-            <MenuItem Header="_Transformation">
-                <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
-            </MenuItem>
-        </Menu>
+        <Grid Grid.Row="0" Background="WhiteSmoke">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <Menu Grid.Column="0" Height="25">
+                <MenuItem Header="_File" Height="25" VerticalAlignment="Center" >
+                    <MenuItem Header="_Open" Click="click_OpenFileDialog" />
+                    <MenuItem Header="_Save" Click="click_SaveFileDialog"/>
+                </MenuItem>
+                <MenuItem Header="_Transformation" Height="25" VerticalAlignment="Center">
+                    <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
+                </MenuItem>
+            </Menu>
+            <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />
+        </Grid>
 
         <!-- Controls grid-->
         <Grid Grid.Row="1" x:Name="controlsGrid">
