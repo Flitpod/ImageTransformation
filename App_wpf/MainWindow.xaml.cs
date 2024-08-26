@@ -1,4 +1,5 @@
 ﻿using App_wpf;
+using App_wpf.TransformationControls;
 using Core;
 using ImageTransformation.Core;
 using Microsoft.Win32;
@@ -28,6 +29,7 @@ namespace ImageTransformation.App
         // fields
         Bitmap bitmapSrc;
         Bitmap bitmapDst;
+        Controls transformationControls;
 
         // ctor
         public MainWindow()
@@ -62,21 +64,61 @@ namespace ImageTransformation.App
             }
         }
 
-        private void sliderRotation_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        //private void sliderRotation_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        //{
+        //    if (bitmapSrc == null) return;
+        //    // this.transformation = Transformations.Rotation(this.sliderRotation.Value);
+        //    // TransformBitmap.ExecuteForward(this.bitmapSrc, ref this.bitmapDst, this.transformation);
+        //    //TransformBitmap.ExecuteBackward(this.bitmapSrc, ref this.bitmapDst, this.transformation, InterpolationTypes.Floating_FromSource, weightCloserNeighbour: 0.25);
+        //    Core.Matrix transformation = Transformations.Rotation(this.sliderRotation.Value, this.bitmapSrc.Height / 2.0, this.bitmapSrc.Width / 2.0);
+        //    TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation);
+        //    RefreshImages();
+        //}
+
+        private void ExecuteRotateTransformation()
         {
             if (bitmapSrc == null) return;
-            // this.transformation = Transformations.Rotation(this.sliderRotation.Value);
-            // TransformBitmap.ExecuteForward(this.bitmapSrc, ref this.bitmapDst, this.transformation);
-            //TransformBitmap.ExecuteBackward(this.bitmapSrc, ref this.bitmapDst, this.transformation, InterpolationTypes.Floating_FromSource, weightCloserNeighbour: 0.25);
-            Core.Matrix transformation = Transformations.Rotation(this.sliderRotation.Value, this.bitmapSrc.Height / 2.0, this.bitmapSrc.Width / 2.0);
-            TransformBitmap.ExecuteBackward_FloatingInterpolation(bitmapSrc, ref bitmapDst, transformation);
+            RotateControls controls = (transformationControls as RotateControls);
+            Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0);
+            if (controls.Backward.IsChecked == false)
+            {
+                TransformBitmap.ExecuteForward(bitmapSrc, ref bitmapDst, transformation);
+            }
+            else
+            {
+                TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation, (InterpolationTypes)controls.IntepolationType.SelectedIndex);
+            }
             RefreshImages();
         }
 
         private void RefreshImages()
         {
             // result image
-            this.imageResult.Source = this.bitmapDst.GetBitmapSource();
+            imageResult.Source = bitmapDst.GetBitmapSource();
+        }
+
+        private void click_TransformationRotate(object sender, RoutedEventArgs e)
+        {
+            if (transformationControls != null) return;
+
+            // create control elements in a stackpanel
+            RotateControls rotateControls = new RotateControls();
+
+            // create eventhandlers for slider, combobox, checkbox valuechanged event
+            rotateControls.Slider.ValueChanged += (s,e) => ExecuteRotateTransformation();
+            rotateControls.IntepolationType.SelectionChanged += (s, e) => ExecuteRotateTransformation();
+            rotateControls.Backward.Click += (s, e) => ExecuteRotateTransformation();
+
+            // event handler for controls close button click
+            rotateControls.CloseBtn.Click += (sender, e) =>
+            {
+                this.transformationControls = null;
+                controlsGrid.Children.Clear();   
+            };
+
+            // add the stackpanel to the grid
+            this.transformationControls = rotateControls;
+            this.controlsGrid.Children.Add(rotateControls.Controls);
         }
     }
 }

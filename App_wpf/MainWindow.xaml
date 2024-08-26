@@ -10,8 +10,8 @@
         <!-- Divide the grid into rows-->
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
         <!-- Menu bar -->
@@ -20,10 +20,36 @@
                 <MenuItem Header="_Open" Click="click_OpenFileDialog"/>
                 <MenuItem Header="_Save" Click="click_SaveFileDialog"/>
             </MenuItem>
+            <MenuItem Header="_Transformation">
+                <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
+            </MenuItem>
         </Menu>
 
+        <!-- Controls grid-->
+        <Grid Grid.Row="1" x:Name="controlsGrid">
+            <!--<Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Content="Backward" Grid.Column="0" x:Name="checkBox_Backward" Margin="5,1,5,1" VerticalAlignment="Center"/>
+            <Line X1="0" X2="0" Y1="2" Y2="23" Stroke="Gray" StrokeThickness="1" Grid.Column="1" />
+            <Label Content="Interpolation" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <ComboBox x:Name="comboBox_InterpolationOptions" Grid.Column="3" Margin="2" Visibility="{ Binding ElementName=checkBox_Backward, Path=IsChecked }"></ComboBox>
+            <Slider x:Name="sliderRotation"  ValueChanged="sliderRotation_ValueChanged"  Grid.Column="4" 
+                    Value="0" Minimum="-180" Maximum="180" 
+                    IsSnapToTickEnabled="True" TickFrequency="1"
+                    VerticalAlignment="Center" Margin="2"/>
+            <Label Content="{ Binding ElementName=sliderRotation, Path=Value }" Grid.Column="5" Margin="5,0,5,0" HorizontalContentAlignment="Center"/>
+            <Button Content="Close" Grid.Column="6" VerticalContentAlignment="Center" />-->
+        </Grid>
+
         <!-- Image Grid content control element-->
-        <Grid x:Name="ImageGrid" Grid.Row="1">
+        <Grid x:Name="ImageGrid" Grid.Row="2">
             <!-- Divide the grid into columns-->
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -31,24 +57,14 @@
             </Grid.ColumnDefinitions>
 
             <!-- left image is source image-->
-            <Image x:Name="imageSource" Grid.Column="0" Margin="5" Stretch="Uniform"/>
+            <Border BorderThickness="1" BorderBrush="Gray" Grid.Column="0" Margin="2">
+                <Image x:Name="imageSource" Stretch="Uniform" />
+            </Border>
 
             <!-- right image is the result image-->
-            <Image x:Name="imageResult" Grid.Column="1" Margin="5" Stretch="Uniform"/>
-        </Grid>
-
-        <!-- RotationControl grid-->
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="50"/>
-            </Grid.ColumnDefinitions>
-            <Slider x:Name="sliderRotation"  ValueChanged="sliderRotation_ValueChanged"  Grid.Column="1" 
-                    Value="0" Minimum="-180" Maximum="180" 
-                    IsSnapToTickEnabled="True" TickFrequency="1"
-                    VerticalAlignment="Center" Margin="5"/>
-            <Label Content="{ Binding ElementName=sliderRotation, Path=Value }" Grid.Column="2" Margin="5" HorizontalContentAlignment="Center"/>
+            <Border BorderThickness="1" BorderBrush="Gray" Grid.Column="1"  Margin="2">
+                <Image x:Name="imageResult" Stretch="Uniform"/>
+            </Border>
         </Grid>
     </Grid>
 </Window>
