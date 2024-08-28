@@ -127,7 +127,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = left * right;
 
             // assert 
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -161,7 +161,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = constant * matrix;
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -292,7 +292,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = matrix.GetReducedEchelonForm(out int sign);
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -355,7 +355,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = matrix.GetSubMatrixWithoutRowAndCol(row, col);
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -410,7 +410,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = matrix.GetTranspose();
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -464,7 +464,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = matrix.GetAdjointMatrix();
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
 
 
@@ -518,7 +518,7 @@ namespace ImageTransformation.Core.Test
             Matrix actual = matrix.GetInverse();
 
             // assert
-            Assert.AreEqual(expected.Values, actual.Values);
+            Assert.That(expected.Values, Is.EqualTo(actual.Values));
         }
     }
 }
