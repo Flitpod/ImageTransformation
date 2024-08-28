@@ -51,18 +51,29 @@ namespace ImageTransformation.App
                 this.bitmapDst = new Bitmap(this.bitmapSrc);
                 this.imageSource.Source = this.bitmapSrc.GetBitmapSource();
                 this.imageResult.Source = this.bitmapDst.GetBitmapSource();
-                label_MetaData.Content = $"{openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
+                this.Title = $"PhotoshApp \t\t\t\t\t\t {openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
             }
         }
 
         private void click_SaveFileDialog(object sender, EventArgs e)
         {
+            if (this.bitmapDst == null) return;
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
             {
                 this.bitmapDst.Save(saveFileDialog.FileName);
             }
+        }
+        private void click_CloseFile(object sender, RoutedEventArgs e)
+        {
+            this.Title = "PhotoshApp";
+            this.transformationControls = null;
+            this.controlsGrid.Children.Clear();
+            this.bitmapDst = null;
+            this.bitmapSrc = null;
+            this.imageResult.Source = null;
+            this.imageSource.Source = null;
         }
 
         private void ExecuteRotateTransformation()
@@ -110,5 +121,6 @@ namespace ImageTransformation.App
             this.transformationControls = rotateControls;
             this.controlsGrid.Children.Add(rotateControls.Controls);
         }
+
     }
 }
