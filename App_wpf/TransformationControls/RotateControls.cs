@@ -1,16 +1,9 @@
 ﻿using Core;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Ribbon;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 
 namespace App_wpf.TransformationControls
@@ -56,12 +49,15 @@ namespace App_wpf.TransformationControls
             Line line = new Line() { X1 = 0, X2 = 0, Y1 = 2, Y2 = 23 };
             line.Stroke = new SolidColorBrush(Colors.Gray);
             line.StrokeThickness = 1;
+            line.VerticalAlignment = VerticalAlignment.Center;
             Grid.SetColumn(line, 1);
             grid.Children.Add(line);
 
+            // CENTER inputs    
+
             // create label for interpolation types
             Label label = new Label();
-            label.Content = "Interpolation Type:";
+            label.Content = "Interpolation";
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.Margin = new Thickness(2, 0, 2, 0);
