@@ -276,98 +276,6 @@ namespace Core
                                 for (int i = 0; (i < 3); i++)
                                     ptrDest[i] = 0;
                         }
-                        /*//else if (interpolationType == InterpolationTypes.Floating_FromSource)
-                        //{
-                        //    // pointer to the source pixel and for the surronding pixels
-                        //    ptrSrc = (byte*)(ptrSrc0 + rowSrc * stride + colSrc * pixelFormat);
-
-                        //    // floating point coordinates
-                        //    double rowSrcF = coordsSrc[0, 0];
-                        //    double colSrcF = coordsSrc[1, 0];
-
-                        //    // casted to floor integer coordinates
-                        //    rowSrc = (int)rowSrcF;
-                        //    colSrc = (int)colSrcF;
-
-                        //    // set pointer to source pixel
-                        //    ptrSrc = (byte*)(ptrSrc0 + rowSrc * stride + colSrc * pixelFormat);
-
-                        //    // outside of 1 pixel extra margin around the image
-                        //    if (rowSrcF <= -1 || rowSrcF >= height || colSrcF <= -1 || colSrcF >= width)
-                        //    {
-                        //        for (int i = 0; i < 3; i++)
-                        //            ptrDest[i] = 0;
-                        //    }
-                        //    // inside the image
-                        //    else if (rowSrcF >= 0 && rowSrcF < (height - 1) && colSrcF >= 0 && colSrcF < (width - 1))
-                        //    {
-                        //        // weights for neighbouring pixels
-                        //        double rowSrcF_Down = rowSrcF - rowSrc;
-                        //        double rowSrcF_Up = 1 - rowSrcF_Down;
-                        //        double colSrcF_Right = colSrcF - colSrc;
-                        //        double colSrcF_Left = 1 - colSrcF_Right;
-                        //        double[] weights = new double[4]
-                        //        {
-                        //        rowSrcF_Up * colSrcF_Left,    // (0 - [up,left]);
-                        //        rowSrcF_Up * colSrcF_Right,   // (1 - [up,right]);
-                        //        rowSrcF_Down * colSrcF_Left,  // (2 - [down,left]);
-                        //        rowSrcF_Down * colSrcF_Right  // (3 - [down,right]);
-                        //        };
-
-                        //        for (int i = 0; i < 3; i++)
-                        //        {
-                        //            ptrDest[i] = (byte)(weights[0] * ptrSrc[i]
-                        //                              + weights[1] * ptrSrc[pixelFormat + i]
-                        //                              + weights[2] * ptrSrc[stride + i]
-                        //                              + weights[3] * ptrSrc[stride + pixelFormat + i]);
-                        //        }
-                        //    }
-                        //    // inside the 1 pixel width margin 
-                        //    else
-                        //    {
-                        //        // corners
-                        //        if ((rowSrcF < 0 && colSrcF < 0) || (rowSrcF < 0 && colSrcF > (width - 1)) || (rowSrcF > (height - 1) && colSrcF < 0) || (rowSrcF > (height - 1) && colSrcF > (width - 1)))
-                        //        {
-                        //            for (int i = 0; i < 3; i++)
-                        //                ptrDest[i] = (byte)(ptrSrc[i] * 0.25);
-                        //        }
-                        //        // above first row or below last row
-                        //        else if (rowSrcF < 0 || rowSrcF > (height - 1))
-                        //        {
-                        //            double weightRight = colSrcF - colSrc;
-                        //            double weightLeft = 1 - weightRight;
-                        //            for (int i = 0; i < 3; i++)
-                        //                ptrDest[i] = (byte)(weightLeft * ptrSrc[i] + weightRight * ptrSrc[pixelFormat + i]);
-                        //        }
-                        //        // before first col or after last col
-                        //        else if (colSrcF < 0 || colSrcF > (width - 1))
-                        //        {
-                        //            // weights for neighbouring pixels
-                        //            double rowSrcF_Down = rowSrcF - rowSrc;
-                        //            double rowSrcF_Up = 1 - rowSrcF_Down;
-                        //            double colSrcF_Right = colSrcF - colSrc;
-                        //            double colSrcF_Left = 1 - colSrcF_Right;
-                        //            double[] weights = new double[4]
-                        //            {
-                        //                rowSrcF_Up * colSrcF_Left,    // (0 - [up,left]);
-                        //                rowSrcF_Up * colSrcF_Right,   // (1 - [up,right]);
-                        //                rowSrcF_Down * colSrcF_Left,  // (2 - [down,left]);
-                        //                rowSrcF_Down * colSrcF_Right  // (3 - [down,right]);
-                        //            };
-
-                        //            double weightUp = 0;
-                        //            double weightDown = 0;
-
-                        //            for (int i = 0; i < 3; i++)
-                        //            {
-                        //                ptrDest[i] = (byte)(weights[0] * ptrSrc[i]
-                        //                                  + weights[1] * ptrSrc[pixelFormat + i]
-                        //                                  + weights[2] * ptrSrc[stride + i]
-                        //                                  + weights[3] * ptrSrc[stride + pixelFormat + i]);
-                        //            }
-                        //        }
-                        //    }
-                        //}*/
                         else if (interpolationType == InterpolationTypes.Dir4_FromSource)
                         {
                             int[] pixelValues = new int[3];
@@ -427,7 +335,7 @@ namespace Core
                         }
                         else if (interpolationType == InterpolationTypes.Dir8_FromSource)
                         {
-                            int[] pixelValues = new int[0];
+                            int[] pixelValues = new int[3];
                             int divider = 0;
 
                             // actual source pixel
