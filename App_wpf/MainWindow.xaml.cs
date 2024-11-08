@@ -51,7 +51,7 @@ namespace ImageTransformation.App
                 this.bitmapDst = new Bitmap(this.bitmapSrc);
                 this.imageSource.Source = this.bitmapSrc.GetBitmapSource();
                 this.imageResult.Source = this.bitmapDst.GetBitmapSource();
-                this.Title = $"PhotoshApp \t\t\t\t\t\t {openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
+                this.Title = $"PhotoshApp \t\t {openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
             }
         }
 
@@ -81,6 +81,7 @@ namespace ImageTransformation.App
             if (bitmapSrc == null) return;
             RotateControls controls = (transformationControls as RotateControls);
             Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0);
+            
             if (controls.Backward.IsChecked == false)
             {
                 TransformBitmap.ExecuteForward(bitmapSrc, ref bitmapDst, transformation);
