@@ -85,7 +85,7 @@ namespace ImageTransformation.Core
         public static Matrix operator *(Matrix left, Matrix right)
         {
             if (!CanMultiply(left, right))
-                throw new Exception("Can not multiply matrices due to size incompatility.");
+                throw new Exception("Can not multiply matrices due to size incompatibility.");
 
             Matrix result = new Matrix(rows: left.Rows, cols: right.Cols);
 
