@@ -102,5 +102,29 @@ namespace Core
             };
         }
 
+        public static Matrix Identity(MatrixType matrixType = MatrixType.Homogenous)
+        {
+            if (matrixType == MatrixType.Base)
+            {
+                return new Matrix()
+                {
+                    Values = new double[2, 2]
+                    {
+                        {1, 0 },
+                        { 0, 1 }
+                    }
+                };
+            }
+            return new Matrix()
+            {
+                Values = new double[3, 3]
+                {
+                    { 1, 0, 0 },
+                    { 0, 1, 0 },
+                    { 0, 0, 1 }
+                }
+            };
+        }
+
     }
 }
