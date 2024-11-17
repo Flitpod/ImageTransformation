@@ -16,6 +16,7 @@ namespace Core.Tests
             new object[]
             {
                 30,
+                Dimension.D3,
                 new Matrix()
                 {
                     Values = new double[3,3]
@@ -24,14 +25,14 @@ namespace Core.Tests
                         { Math.Sin(30.0.ToRadian()), Math.Cos(30.0.ToRadian()), 0},
                         { 0, 0, 1}
                     }
-                }
+                },
             }
         };
         [TestCaseSource(nameof(RotationDataSource_ShouldPass))]
-        public void GetRotationMatrix_Functional_ShouldPass(double degree, Matrix expected)
+        public void GetRotationMatrix_Functional_ShouldPass(double degree, Dimension dimension, Matrix expected)
         {
             // act
-            Matrix actual = Transformations.Rotation(degree);
+            Matrix actual = Transformations.Rotation(degree, dimension);
 
             // assert
             Assert.That(actual.Values, Is.EqualTo(expected.Values));
@@ -44,6 +45,7 @@ namespace Core.Tests
             {
                 1,
                 2,
+                Dimension.D3,
                 new Matrix()
                 {
                     Values = new double[3,3]
@@ -53,28 +55,27 @@ namespace Core.Tests
                         { 0, 0, 1}
                     }
                 },
-                MatrixType.Homogenous
             },
             new object[]
             {
                 1,
                 2,
+                Dimension.D2,
                 new Matrix()
                 {
-                    Values = new double[2,1]
+                    Values = new double[2,2]
                     {
-                        { 1},
-                        { 2}
+                        { 1, 1},
+                        { 0, 2}
                     }
                 },
-                MatrixType.Base
             }
         };
         [TestCaseSource(nameof(TranslationDataSource_ShouldPass))]
-        public void GetTranslationMatrix_Functional_ShouldPass(double rowDirection, double colDirection, Matrix expected, MatrixType matrixType)
+        public void GetTranslationMatrix_Functional_ShouldPass(double rowDirection, double colDirection, Dimension dimension, Matrix expected)
         {
             // act
-            Matrix actual = Transformations.Translation(rowDirection, colDirection, matrixType);
+            Matrix actual = Transformations.Translation(rowDirection, colDirection, dimension);
 
             // assert
             Assert.That(actual.Values, Is.EqualTo(expected.Values));
@@ -87,6 +88,7 @@ namespace Core.Tests
             {
                 2,
                 3,
+                Dimension.D3,
                 new Matrix()
                 {
                     Values = new double[3,3]
@@ -96,12 +98,12 @@ namespace Core.Tests
                         { 0, 0, 1}
                     }
                 },
-                MatrixType.Homogenous
             },
             new object[]
             {
                 2,
                 3,
+                Dimension.D2,
                 new Matrix()
                 {
                     Values = new double[2,2]
@@ -110,14 +112,13 @@ namespace Core.Tests
                         { 0, 3}
                     }
                 },
-                MatrixType.Base
             }
         };
         [TestCaseSource(nameof(ScaleDataSource_ShouldPass))]
-        public void GetScaleMatrix_Functional_ShouldPass(double rowDirection, double colDirection, Matrix expected, MatrixType matrixType)
+        public void GetScaleMatrix_Functional_ShouldPass(double rowDirection, double colDirection, Dimension dimension, Matrix expected)
         {
             // act
-            Matrix actual = Transformations.Scale(rowDirection, colDirection, matrixType);
+            Matrix actual = Transformations.Scale(rowDirection, colDirection, dimension);
 
             // assert
             Assert.That(actual.Values, Is.EqualTo(expected.Values));

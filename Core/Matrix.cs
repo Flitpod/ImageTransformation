@@ -20,6 +20,11 @@ namespace ImageTransformation.Core
         public int Cols { get; private set; }
     }
 
+    public enum Dimension
+    {
+        D2 = 2, D3 = 3, D4 = 4
+    }
+
     public class Matrix
     {
         // fields - properties
@@ -58,6 +63,22 @@ namespace ImageTransformation.Core
 
 
         // static methods
+        public static Matrix GetVector(double x, double y, Dimension dimension)
+        {
+            int rows = (int)dimension;
+
+            Matrix vector = new Matrix(rows: rows, cols: 1);
+            for (int i = 2; i < rows; i++)
+            {
+                vector[i, 0] = 1;
+            }
+
+            vector[0,0] = x;
+            vector[1,0] = y;
+
+            return vector;
+        }
+        
         private static bool CanMultiply(Matrix left, Matrix right) => (left.Cols == right.Rows);
         public static int CheckRowChangeReturnSign(Matrix matrix, int row, int col)
         {

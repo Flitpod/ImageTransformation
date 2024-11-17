@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ImageTransformation.Core;
 
-namespace ImageTransformation.Core.Test
+namespace Core.Tests
 {
     [TestFixture]
     public class MatrixTests
@@ -519,6 +519,65 @@ namespace ImageTransformation.Core.Test
 
             // assert
             Assert.That(expected.Values, Is.EqualTo(actual.Values));
+        }
+
+
+        public static object[] GetVector_Data_ShouldPass =
+        {
+            new object[]
+            {
+                10,
+                20,
+                Dimension.D2,
+                new Matrix
+                {
+                    Values = new double[2,1]
+                    {
+                        { 10 },
+                        { 20 },
+                    }
+                }
+            },
+            new object[]
+            {
+                11,
+                22,
+                Dimension.D3,
+                new Matrix
+                {
+                    Values = new double[3,1]
+                    {
+                        { 11 },
+                        { 22 },
+                        { 1 },
+                    }
+                }
+            },
+            new object[]
+            {
+                111,
+                222,
+                Dimension.D4,
+                new Matrix
+                {
+                    Values = new double[4,1]
+                    {
+                        { 111 },
+                        { 222 },
+                        { 1 },
+                        { 1 },
+                    }
+                }
+            },
+        };
+        [TestCaseSource(nameof(GetVector_Data_ShouldPass))]
+        public void GetVector_Functional_ShouldPass(double x, double y, Dimension dimension, Matrix expected)
+        {
+            // act
+            Matrix actual = Matrix.GetVector(x, y, dimension);
+
+            // assert
+            Assert.That(actual.Values, Is.EqualTo(expected.Values));
         }
     }
 }
