@@ -8,13 +8,10 @@ using System.Windows.Shapes;
 
 namespace App_wpf.TransformationControls
 {
-    public class RotateControls : Controls
+    public class RotateControls : TransformationControls
     {
-        public UIElement Controls { get; private set; }
-        public CheckBox Backward { get; private set; }
         public ComboBox IntepolationType { get; private set; }
         public Slider Slider { get; private set; }
-        public Button CloseBtn { get; private set; }
 
         public RotateControls()
         {

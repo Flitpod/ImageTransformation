@@ -6,6 +6,11 @@
         xmlns:local="clr-namespace:ImageTransformation.App"
         mc:Ignorable="d"
         Title="PhotoshApp" Height="600" Width="1200" >
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="ImageBackgroundColorBrush" Color="Gray" />
+    </Window.Resources>
+    
     <Grid x:Name="WindowGrid" DataContext="MainWindow">
         <!-- Divide the grid into rows-->
         <Grid.RowDefinitions>
@@ -29,6 +34,7 @@
                 </MenuItem>
                 <MenuItem Header="_Transformation" Height="20" VerticalAlignment="Center">
                     <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
+                    <MenuItem Header="_General" Click="click_TransformationGeneral"/>
                 </MenuItem>
             </Menu>
             <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />
@@ -55,6 +61,204 @@
                     VerticalAlignment="Center" Margin="2"/>
             <Label Content="{ Binding ElementName=sliderRotation, Path=Value }" Grid.Column="5" Margin="5,0,5,0" HorizontalContentAlignment="Center"/>
             <Button Content="Close" Grid.Column="6" VerticalContentAlignment="Center" />-->
+
+            <!--<Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                 --><!--Separator--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Transform 1--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--space--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Transform 2--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--* symbol--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Transform 3--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--* symbol--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Pixel vector--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Execute button--><!-- 
+                <ColumnDefinition Width="*"/>
+                 --><!--space--><!-- 
+                <ColumnDefinition Width="Auto"/>
+                 --><!--Close button--><!-- 
+            </Grid.ColumnDefinitions>
+            
+            --><!--  --><!--
+            <Grid Grid.Column="0" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="1" Margin="5" VerticalAlignment="Top" HorizontalAlignment="Right" Text="Row" />
+                <TextBlock Grid.Row="2" Margin="5" VerticalAlignment="Top" HorizontalAlignment="Right" Text="Col" />
+                <TextBlock Grid.Row="3" Margin="5" VerticalAlignment="Top" HorizontalAlignment="Right" Text="Z" />
+            </Grid>
+
+             --><!--Transformation Matrix 1--><!-- 
+            <Grid Grid.Column="1" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Transformation 1" HorizontalAlignment="Center"  Margin="5"/>
+                <TextBox Grid.Row="1" Grid.Column="0" x:Name="transformation1_00_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="transformation1_01_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="2" x:Name="transformation1_02_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="0" x:Name="transformation1_10_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="transformation1_11_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="2" x:Name="transformation1_12_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="0" x:Name="transformation1_20_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="1" x:Name="transformation1_21_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="2" x:Name="transformation1_22_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+            </Grid>
+
+             --><!--Multiply Symbol 1--><!-- 
+            <Grid Grid.Column="2" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.9*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="1" Text="*" FontSize="20" Margin="5" VerticalAlignment="Top"/>
+            </Grid>
+
+             --><!--Transformation Matrix 2--><!-- 
+            <Grid Grid.Column="3" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Transformation 2" HorizontalAlignment="Center"  Margin="5"/>
+                <TextBox Grid.Row="1" Grid.Column="0" x:Name="transformation2_00_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="transformation2_01_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="2" x:Name="transformation2_02_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="0" x:Name="transformation2_10_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="transformation2_11_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="2" x:Name="transformation2_12_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="0" x:Name="transformation2_20_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="1" x:Name="transformation2_21_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="2" x:Name="transformation2_22_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+            </Grid>
+
+             --><!--Multiply Symbol 2--><!-- 
+            <Grid Grid.Column="4" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.9*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="1" Text="*" FontSize="20" Margin="5" VerticalAlignment="Top"/>
+            </Grid>
+
+             --><!--Transformation Matrix 3--><!-- 
+            <Grid Grid.Column="5" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.ColumnSpan="3" Text="Pixel Vector" Margin="5" HorizontalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="0" x:Name="transformation3_00_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="transformation3_01_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="1" Grid.Column="2" x:Name="transformation3_02_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="0" x:Name="transformation3_10_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="transformation3_11_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="2" Grid.Column="2" x:Name="transformation3_12_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="0" x:Name="transformation3_20_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="1" x:Name="transformation3_21_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+                <TextBox Grid.Row="3" Grid.Column="2" x:Name="transformation3_22_value" Width="40" Height="25" Margin="2" TextAlignment="Right" VerticalContentAlignment="Center" PreviewTextInput="NumberValidationTextBox"/>
+            </Grid>
+
+             --><!--Multiply Symbol 3--><!-- 
+            <Grid Grid.Column="6" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="0.9*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="1" Text="*" FontSize="20" Margin="5" VerticalAlignment="Top"/>
+            </Grid>
+
+             --><!--Pixel Vector--><!-- 
+            <Grid Grid.Column="7" Margin="5 5 20 5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="3*"/>
+
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="Pixel vector" Margin="5" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="[" FontSize="60" VerticalAlignment="Center" Padding="0 0 0 0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="p" FontSize="30" VerticalAlignment="Center" Padding="0 0 0 0"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="]" FontSize="60" VerticalAlignment="Center" Padding="0 0 0 0"/>
+            </Grid>
+
+             --><!--Execution settings--><!-- 
+            <Grid Grid.Column="8" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                 --><!--Text--><!-- 
+                <TextBlock Grid.Row="0" Margin="5" Text="Transformation"  VerticalAlignment="Top"/>
+
+                 --><!--Backward Checkbox--><!-- 
+                <CheckBox Grid.Row="1" Content="Backward" 
+                     VerticalAlignment="Center" 
+                     Margin="5" 
+                     x:Name="checkBox_Backward"/>
+                
+                 --><!--Execute Button--><!-- 
+                <Button Grid.Row="2" 
+                    Content="Execute" 
+                    Margin="5" 
+                    Padding="5"
+                        FontSize="16"
+                    x:Name="executeButton"
+                    Click="ExecuteButton_Click"/>
+            </Grid>
+
+             --><!--Close Button--><!-- 
+            <Button Grid.Column="10" 
+            Content="Close" 
+            Margin="5" 
+            Padding="5"
+            x:Name="closeButton"
+            Click="CloseButton_Click"/>-->
         </Grid>
 
         <!-- Image Grid content control element-->
@@ -66,12 +270,12 @@
             </Grid.ColumnDefinitions>
 
             <!-- left image is source image-->
-            <Border BorderThickness="1" BorderBrush="Gray" Grid.Column="0" Margin="2">
+            <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray" Margin="2" Background="{StaticResource ImageBackgroundColorBrush}" >
                 <Image x:Name="imageSource" Stretch="Uniform" />
             </Border>
 
             <!-- right image is the result image-->
-            <Border BorderThickness="1" BorderBrush="Gray" Grid.Column="1"  Margin="2">
+            <Border Grid.Column="1" BorderThickness="1" BorderBrush="Gray" Margin="2" Background="{StaticResource ImageBackgroundColorBrush}">
                 <Image x:Name="imageResult" Stretch="Uniform"/>
             </Border>
         </Grid>

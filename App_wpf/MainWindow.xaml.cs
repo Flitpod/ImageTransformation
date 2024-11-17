@@ -29,7 +29,7 @@ namespace ImageTransformation.App
         // fields
         Bitmap bitmapSrc;
         Bitmap bitmapDst;
-        Controls transformationControls;
+        TransformationControls transformationControls;
 
         // ctor
         public MainWindow()
@@ -51,7 +51,7 @@ namespace ImageTransformation.App
                 this.bitmapDst = new Bitmap(this.bitmapSrc);
                 this.imageSource.Source = this.bitmapSrc.GetBitmapSource();
                 this.imageResult.Source = this.bitmapDst.GetBitmapSource();
-                this.Title = $"PhotoshApp \t\t {openFileDialog.SafeFileName} - {bitmapSrc.Width} x {bitmapSrc.Height} ";
+                this.Title = $"PhotoshApp  |  {openFileDialog.SafeFileName} - (width/col = {bitmapSrc.Width}) x (height/row = {bitmapSrc.Height})";
             }
         }
 
@@ -75,39 +75,22 @@ namespace ImageTransformation.App
             this.imageResult.Source = null;
             this.imageSource.Source = null;
         }
-
-        private void ExecuteRotateTransformation()
-        {
-            if (bitmapSrc == null) return;
-            RotateControls controls = (transformationControls as RotateControls);
-            Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0);
-            
-            if (controls.Backward.IsChecked == false)
-            {
-                TransformBitmap.ExecuteForward(bitmapSrc, ref bitmapDst, transformation);
-            }
-            else
-            {
-                TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation, (InterpolationTypes)controls.IntepolationType.SelectedIndex);
-            }
-            RefreshImages();
-        }
-
         private void RefreshImages()
         {
             // result image
             imageResult.Source = bitmapDst.GetBitmapSource();
         }
 
+        // create rotate transformation toolbar
         private void click_TransformationRotate(object sender, RoutedEventArgs e)
         {
-            if (transformationControls != null) return;
+            if (IsToolbarControlOpen()) return;
 
             // create control elements in a stackpanel
             RotateControls rotateControls = new RotateControls();
 
             // create eventhandlers for slider, combobox, checkbox valuechanged event
-            rotateControls.Slider.ValueChanged += (s,e) => ExecuteRotateTransformation();
+            rotateControls.Slider.ValueChanged += (s, e) => ExecuteRotateTransformation();
             rotateControls.IntepolationType.SelectionChanged += (s, e) => ExecuteRotateTransformation();
             rotateControls.Backward.Click += (s, e) => ExecuteRotateTransformation();
 
@@ -115,7 +98,7 @@ namespace ImageTransformation.App
             rotateControls.CloseBtn.Click += (sender, e) =>
             {
                 this.transformationControls = null;
-                controlsGrid.Children.Clear();   
+                controlsGrid.Children.Clear();
             };
 
             // add the stackpanel to the grid
@@ -123,5 +106,76 @@ namespace ImageTransformation.App
             this.controlsGrid.Children.Add(rotateControls.Controls);
         }
 
+        // create general transformation toolbar
+        private void click_TransformationGeneral(object sender, RoutedEventArgs e)
+        {
+            if (IsToolbarControlOpen()) return;
+
+            // create control elements in a stackpanel
+            GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls();
+
+            // event handler for controls close button click
+            generalMatrixControls.CloseBtn.Click += (sender, e) =>
+            {
+                this.transformationControls = null;
+                controlsGrid.Children.Clear();
+            };
+
+            generalMatrixControls.Backward.Click += (s, e) => ExecuteGeneralTransformation();
+
+            // event handler for controls execute button click
+            generalMatrixControls.ExecuteBtn.Click += (s,e) => ExecuteGeneralTransformation();
+
+            // add the stackpanel to the grid
+            this.transformationControls = generalMatrixControls;
+            this.controlsGrid.Children.Add(generalMatrixControls.Controls);
+        }
+
+        // get transformation matrix for rotate transformation
+        private void ExecuteRotateTransformation()
+        {
+            if (bitmapSrc == null) return;
+            RotateControls controls = (transformationControls as RotateControls);
+            Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0);
+
+            ExecuteTransformation(transformation, (InterpolationTypes)controls.IntepolationType.SelectedIndex);
+        }
+
+        // get transformation matrix for general transformation
+        private void ExecuteGeneralTransformation()
+        {
+            if (bitmapSrc == null) return;
+            GeneralMatrixControls controls = (transformationControls as GeneralMatrixControls);
+            Core.Matrix transformation = controls.GetTransformation();
+
+            ExecuteTransformation(transformation);
+        }
+
+        // execute transformation
+        private void ExecuteTransformation(Core.Matrix transformation, InterpolationTypes interpolationType = InterpolationTypes.Floating_FromSource)
+        {
+            try
+            {
+                if (transformationControls.Backward.IsChecked == false)
+                {
+                    TransformBitmap.ExecuteForward(bitmapSrc, ref bitmapDst, transformation);
+                }
+                else
+                {
+                    TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation, InterpolationTypes.Floating_FromSource);
+                }
+                RefreshImages();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // helper method for avoid open controls onto each other
+        private bool IsToolbarControlOpen()
+        {
+            return transformationControls != null;
+        }
     }
 }
