@@ -112,7 +112,7 @@ namespace ImageTransformation.App
             if (IsToolbarControlOpen()) return;
 
             // create control elements in a stackpanel
-            GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls();
+            GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls(3);
 
             // event handler for controls close button click
             generalMatrixControls.CloseBtn.Click += (sender, e) =>
@@ -136,7 +136,7 @@ namespace ImageTransformation.App
         {
             if (bitmapSrc == null) return;
             RotateControls controls = (transformationControls as RotateControls);
-            Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0);
+            Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0, Dimension.D3);
 
             ExecuteTransformation(transformation, (InterpolationTypes)controls.IntepolationType.SelectedIndex);
         }

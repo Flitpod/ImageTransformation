@@ -43,7 +43,7 @@ namespace App.Forms
         {
             if(this.bitmapSrc == null) return;
             
-            this.transformation = Transformations.Rotation((double)num_Control.Value);
+            this.transformation = Transformations.Rotation((double)num_Control.Value, Dimension.D3);
             TransformBitmap.ExecuteForward(this.bitmapSrc, ref this.bitmapDst, this.transformation);
             this.pictureBox_Result.Image = this.bitmapDst;
         }

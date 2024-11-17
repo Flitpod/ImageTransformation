@@ -18,13 +18,15 @@ namespace App_wpf.TransformationControls
 
         // Array to hold the TextBox controls for each transformation matrix
         private TextBox[][,] TransformationValues { get; set; }
+        private int _matrix_size;
 
-        public GeneralMatrixControls()
+        public GeneralMatrixControls(int matrix_size)
         {
+            _matrix_size = matrix_size;
             TransformationValues = new TextBox[3][,];
-            TransformationValues[0] = new TextBox[3, 3];
-            TransformationValues[1] = new TextBox[3, 3];
-            TransformationValues[2] = new TextBox[3, 3];
+            TransformationValues[0] = new TextBox[matrix_size, matrix_size];
+            TransformationValues[1] = new TextBox[matrix_size, matrix_size];
+            TransformationValues[2] = new TextBox[matrix_size, matrix_size];
             CreateLayout();
         }
 
@@ -108,26 +110,26 @@ namespace App_wpf.TransformationControls
 
         private Grid CreateMatrixDescriptionGrid()
         {
+            string[] texts = new string[] { "Row", "Col", "Homogenous", "Scale" };
+
             Grid grid = new Grid
             {
                 Margin = new Thickness(5),
             };
 
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            for (int i = 0; i <= _matrix_size; i++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            }
 
-            string[] text = { "Row", "Col", "Z dir" };
-
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < _matrix_size; i++)
             {
                 TextBlock textBlock = new TextBlock
                 {
                     Margin = new Thickness(5),
                     VerticalAlignment = VerticalAlignment.Top,
                     HorizontalAlignment = HorizontalAlignment.Right,
-                    Text = text[i]
+                    Text = texts[i]
                 };
 
                 Grid.SetRow(textBlock, i + 1);
@@ -145,10 +147,10 @@ namespace App_wpf.TransformationControls
             };
 
             // Define rows and columns
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i <= _matrix_size; i++)
                 grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i <= _matrix_size; i++)
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
             // Add title
@@ -159,21 +161,21 @@ namespace App_wpf.TransformationControls
                 Margin = new Thickness(5)
             };
             Grid.SetRow(titleBlock, 0);
-            Grid.SetColumnSpan(titleBlock, 3);
+            Grid.SetColumnSpan(titleBlock, _matrix_size);
             grid.Children.Add(titleBlock);
 
             // Add textboxes with initial values
-            Matrix identity = Transformations.Identity(MatrixType.Homogenous);
+            Matrix identity = Transformations.Identity((Dimension)_matrix_size);
 
             // Create and store TextBoxes in the correct array index
-            for (int row = 0; row < 3; row++)
+            for (int row = 0; row < _matrix_size; row++)
             {
-                for (int col = 0; col < 3; col++)
+                for (int col = 0; col < _matrix_size; col++)
                 {
                     TextBox textBox = new TextBox
                     {
                         Name = $"transformation{transformationMatrixIdx}_{row}{col}_value",
-                        Width = 40,
+                        Width = 45,
                         Height = 25,
                         Margin = new Thickness(2),
                         TextAlignment = TextAlignment.Right,
@@ -181,6 +183,10 @@ namespace App_wpf.TransformationControls
                         Text = identity[row, col].ToString()
                     };
                     textBox.PreviewTextInput += NumberValidationTextBox;
+                    if(row >= 3)
+                    {
+                        textBox.IsReadOnly = true;
+                    }
 
                     Grid.SetRow(textBox, row + 1);
                     Grid.SetColumn(textBox, col);
@@ -306,7 +312,7 @@ namespace App_wpf.TransformationControls
                 Padding = new Thickness(5),
                 FontSize = 16,
                 Name = "executeButton",
-                VerticalAlignment= VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center
             };
 
             Grid.SetRow(executeButton, 2);
@@ -318,12 +324,12 @@ namespace App_wpf.TransformationControls
 
         private void CreateInitialValues()
         {
-            Matrix identity = Transformations.Identity();
+            Matrix identity = Transformations.Identity(Dimension.D4);
             for (int k = 0; k < 3; k++)
             {
-                for (int row = 0; row < 3; row++)
+                for (int row = 0; row < _matrix_size; row++)
                 {
-                    for (int col = 0; col < 3; col++)
+                    for (int col = 0; col < _matrix_size; col++)
                     {
                         //TransformationValues[k][row, col].SetValue(TextBox.TextProperty, identity[row,col].ToString());
                         TransformationValues[k][row, col].Text = identity[row, col].ToString();
@@ -343,7 +349,7 @@ namespace App_wpf.TransformationControls
         }
 
         // Helper method to get matrix values
-        public Matrix GetTransformationMatrix(int index)
+        public Matrix GetTransformationMatrix(int index, Dimension dimension)
         {
             TextBox[,] sourceArray = index switch
             {
@@ -353,10 +359,12 @@ namespace App_wpf.TransformationControls
                 _ => throw new ArgumentException("Invalid transformation index")
             };
 
-            Matrix matrix = new Matrix(3, 3);
-            for (int i = 0; i < 3; i++)
+            int dim = (int)dimension;
+            Matrix matrix = new Matrix(dim, dim);
+            matrix[dim - 1, dim - 1] = 1;
+            for (int i = 0; i < _matrix_size; i++)
             {
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < _matrix_size; j++)
                 {
                     if (double.TryParse(sourceArray[i, j].Text, out double value))
                     {
@@ -370,9 +378,10 @@ namespace App_wpf.TransformationControls
         // get aggregated transformation matrix
         public Matrix GetTransformation()
         {
-            Matrix left = GetTransformationMatrix(0);
-            Matrix middle = GetTransformationMatrix(1);
-            Matrix right = GetTransformationMatrix(2);
+            Dimension dimension = (Dimension)_matrix_size;
+            Matrix left = GetTransformationMatrix(0, dimension);
+            Matrix middle = GetTransformationMatrix(1, dimension);
+            Matrix right = GetTransformationMatrix(2, dimension);
             return (left * (middle * right));
         }
     }
