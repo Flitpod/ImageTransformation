@@ -50,6 +50,10 @@ namespace Core
             // get the inverse of the transformation
             Matrix invTransformation = transformation.GetInverse();
 
+            // get dimension information from transformation
+            Dimension dimension = (Dimension)transformation.Rows;
+            int dim = transformation.Rows;
+
             // calculation of the transformation
             {
                 // get data for transformation
@@ -70,15 +74,8 @@ namespace Core
                         // pointer to the actual pixel on the destination bitmap
                         byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixelFormat);
 
-                        Matrix coordsDest = new Matrix()
-                        {
-                            Values = new double[3, 1]
-                            {
-                                { row }, // row
-                                { col }, // col
-                                { 1 }  // homogenious
-                            }
-                        };
+                        // get the vector contains the actual pixel coordinates
+                        Matrix coordsDest = Matrix.GetVector(x: row, y: col, dimension: dimension);
 
                         // calcuate the destination cordinates (pixels)
                         Matrix coordsSrc = invTransformation * coordsDest;
@@ -116,8 +113,12 @@ namespace Core
             // get the inverse of the transformation
             Matrix invTransformation = transformation.GetInverse();
 
+            // get dimension information from transformation
+            Dimension dimension = (Dimension)transformation.Rows;
+            int dim = transformation.Rows;
+
             // if interpolation type is Floating_FromSource
-            if(interpolationType == InterpolationTypes.Floating_FromSource)
+            if (interpolationType == InterpolationTypes.Floating_FromSource)
             {
                 // create bitmap from source with 1 pixel padding
                 Bitmap sourcePadded = new Bitmap(source.Width + 2, source.Height + 2);
@@ -164,24 +165,22 @@ namespace Core
                             // pointer to the actual pixel on the destination bitmap
                             byte* ptrDest = (byte*)(ptrDest0 + row * strideR + col * pixelFormat);
 
-                            Matrix coordsDest = new Matrix()
-                            {
-                                Values = new double[3, 1]
-                                {
-                                    { row }, // row
-                                    { col }, // col
-                                    { 1 }  // homogenious
-                                }
-                            };
+                            // get the vector contains the actual pixel coordinates
+                            Matrix coordsDest = Matrix.GetVector(x:  row, y: col, dimension: dimension);
 
                             // calcuate the destination cordinates (pixels)
                             Matrix coordsSrc = invTransformation * coordsDest;
 
                             // Calculate the coordinates of the source pixels
-                            int rowSrc = (int)(coordsSrc[0, 0] + 1);
-                            int colSrc = (int)(coordsSrc[1, 0] + 1);
-                            double rowSrcF = coordsSrc[0, 0] + 1;
-                            double colSrcF = coordsSrc[1, 0] + 1;
+                            double scale = coordsSrc[dim - 1, 0];
+                            if (scale < 0.01)
+                            {
+                                scale = 0.01;
+                            }
+                            double rowSrcF = (coordsSrc[0, 0] / scale) + 1;
+                            double colSrcF = (coordsSrc[1, 0] / scale) + 1;
+                            int rowSrc = (int)(rowSrcF);
+                            int colSrc = (int)(colSrcF);
 
                             // inside the image
                             if (rowSrcF >= 0 && rowSrcF < (heightS - 1) && colSrcF >= 0 && colSrcF < (widthS - 1))
@@ -245,15 +244,8 @@ namespace Core
                         // pointer to the actual pixel on the destination bitmap
                         byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixelFormat);
 
-                        Matrix coordsDest = new Matrix()
-                        {
-                            Values = new double[3, 1]
-                            {
-                                { row }, // row
-                                { col }, // col
-                                { 1 }  // homogenious
-                            }
-                        };
+                        // get the vector contains the actual pixel coordinates
+                        Matrix coordsDest = Matrix.GetVector(x: row, y: col, dimension: dimension);
 
                         // calcuate the destination cordinates (pixels)
                         Matrix coordsSrc = invTransformation * coordsDest;
@@ -537,6 +529,10 @@ namespace Core
             // create bitmap from source with 1 pixel padding
             Bitmap sourcePadded = new Bitmap(source.Width + 2, source.Height + 2);
 
+            // get dimension information from transformation
+            Dimension dimension = (Dimension)transformation.Rows;
+            int dim = transformation.Rows;
+
             // calculation of the transformation
             {
                 // get data for transformation
@@ -579,31 +575,29 @@ namespace Core
                         // pointer to the actual pixel on the destination bitmap
                         byte* ptrDest = (byte*)(ptrDest0 + row * strideR + col * pixelFormat);
 
-                        Matrix coordsDest = new Matrix()
-                        {
-                            Values = new double[3, 1]
-                            {
-                                { row }, // row
-                                { col }, // col
-                                { 1 }  // homogenious
-                            }
-                        };
+                        // get the vector contains the actual pixel coordinates
+                        Matrix coordsDest = Matrix.GetVector(x: row, y: col, dimension: dimension);
 
                         // calcuate the destination cordinates (pixels)
                         Matrix coordsSrc = invTransformation * coordsDest;
 
                         // Calculate the coordinates of the source pixels
-                        int rowSrc = (int)(coordsSrc[0, 0] + 1);
-                        int colSrc = (int)(coordsSrc[1, 0] + 1);
-                        double rowSrcF = coordsSrc[0, 0] + 1;
-                        double colSrcF = coordsSrc[1, 0] + 1;
+                        double scale = coordsSrc[dim - 1, 0];
+                        if (scale < 0.01)
+                        {
+                            scale = 0.01;
+                        }
+                        double rowSrcF = (coordsSrc[0, 0] / scale) + 1;
+                        double colSrcF = (coordsSrc[1, 0] / scale) + 1;
+                        int rowSrc = (int)(rowSrcF);
+                        int colSrc = (int)(colSrcF);
 
                         // inside the image
                         if (rowSrcF >= 0 && rowSrcF < (heightS - 1) && colSrcF >= 0 && colSrcF < (widthS - 1))
                         {
                             // pointer to the source pixel and for the surronding pixels
                             byte* ptrSrc = (byte*)(ptrSrc0 + rowSrc * strideS + colSrc * pixelFormat);
-                            
+
                             // weights for neighbouring pixels
                             double rowSrcF_Down = rowSrcF - rowSrc;
                             double rowSrcF_Up = 1 - rowSrcF_Down;
@@ -647,6 +641,9 @@ namespace Core
             // set the result bitmap to black
             result.SetTo(red: 0, green: 0, blue: 0);
 
+            // get the dimension of the transformation
+            int dim = transformation.Rows;
+
             // calculation of the transformation
             {
                 // get data for transformation
@@ -667,15 +664,7 @@ namespace Core
                         // pointer to the actual pixel on the source bitmap
                         byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixelFormat);
 
-                        Matrix coordsSrc = new Matrix()
-                        {
-                            Values = new double[3, 1]
-                            {
-                                { row }, // row
-                                { col }, // col
-                                { 1 }  // homogenious
-                            }
-                        };
+                        Matrix coordsSrc = Matrix.GetVector(x: row, y: col, dimension: (Dimension)dim);
 
                         // calcuate the destination cordinates (pixels)
                         Matrix coodrsDest = transformation * coordsSrc;
@@ -691,8 +680,10 @@ namespace Core
 
         private static unsafe void PrintPixelForward(byte* ptrSrc, byte* ptrDest0, int stride, int pixelFormat, Matrix coordsDest, int height, int width)
         {
-            int rowDest = (int)(coordsDest[0, 0] + 0.5);
-            int colDest = (int)(coordsDest[1, 0] + 0.5);
+            double scale = coordsDest[coordsDest.Rows - 1, 0];
+            scale = scale < 0.01 ? 0.01 : scale;
+            int rowDest = (int)((coordsDest[0, 0] / scale) + 0.5);
+            int colDest = (int)((coordsDest[1, 0] / scale) + 0.5);
             if (rowDest < 0 || rowDest >= height || colDest < 0 || colDest >= width)
             {
                 return;
