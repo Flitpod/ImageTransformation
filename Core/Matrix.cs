@@ -20,11 +20,6 @@ namespace ImageTransformation.Core
         public int Cols { get; private set; }
     }
 
-    public enum Dimension
-    {
-        D2 = 2, D3 = 3, D4 = 4
-    }
-
     public class Matrix
     {
         // fields - properties

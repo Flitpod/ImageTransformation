@@ -22,12 +22,7 @@ namespace Core
             double sine = Math.Sin(degree.ToRadian());
             double cosine = Math.Cos(degree.ToRadian());
 
-            int dim = dimension switch
-            {
-                Dimension.D2 => 2,
-                Dimension.D3 => 3,
-                Dimension.D4 => 4,
-            };
+            int dim = (int)dimension;
 
             Matrix matrix = new Matrix
             {
@@ -56,12 +51,7 @@ namespace Core
 
         public static Matrix Translation(double rowDirection, double colDirection, Dimension dimension)
         {
-            int dim = dimension switch
-            {
-                Dimension.D2 => 2,
-                Dimension.D3 => 3,
-                Dimension.D4 => 4,
-            };
+            int dim = (int)dimension;
 
             Matrix matrix = new Matrix
             {
@@ -82,12 +72,7 @@ namespace Core
 
         public static Matrix Scale(double rowDirection, double colDirection, Dimension dimension)
         {
-            int dim = dimension switch
-            {
-                Dimension.D2 => 2,
-                Dimension.D3 => 3,
-                Dimension.D4 => 4,
-            };
+            int dim = (int)dimension;
 
             Matrix matrix = new Matrix
             {
@@ -107,12 +92,7 @@ namespace Core
 
         public static Matrix Identity(Dimension dimension)
         {
-            int dim = dimension switch
-            {
-                Dimension.D2 => 2,
-                Dimension.D3 => 3,
-                Dimension.D4 => 4,
-            };
+            int dim = (int)dimension;
 
             Matrix matrix = new Matrix
             {
