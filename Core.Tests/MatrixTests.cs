@@ -197,6 +197,38 @@ namespace Core.Tests
             });
         }
 
+        public static object[] MinusOperatorWithConstant_DataSource_ShouldPass = new object[]
+        {
+            new object[]
+            {
+                new Matrix()
+                {
+                    Values = new double[2,3]
+                    {
+                        { 1, 2, 3 },
+                        { 4, 5, 6 },
+                    }
+                },
+                1,
+                 new Matrix()
+                {
+                    Values = new double[2,3]
+                    {
+                        { 0, 1, 2 },
+                        { 3, 4, 5 },
+                    }
+                },
+            }
+        };
+        [TestCaseSource(nameof(MinusOperatorWithConstant_DataSource_ShouldPass))]
+        public void MinusOperatorWithConstant_Functional_ShouldPass(Matrix matrix, double constant, Matrix expected)
+        {
+            // act
+            var actual = matrix - constant;
+
+            // assert
+            Assert.That(actual.Values, Is.EqualTo(expected.Values));
+        }
 
         public static object[] MatricesForRowChangeForReducedEchelonFormCalculation_ShouldPass =
         {

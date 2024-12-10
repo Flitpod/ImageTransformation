@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -134,6 +135,18 @@ namespace ImageTransformation.Core
         public static Matrix operator *(double constant, Matrix matrix)
         {
             return matrix * constant;
+        }
+        public static Matrix operator -(Matrix matrix, double constant)
+        {
+            Matrix result = new Matrix(rows: matrix.Rows, cols: matrix.Cols);
+            for (int row = 0; row < result.Rows; row++)
+            {
+                for (int col = 0; col < result.Cols; col++)
+                {
+                    result[row, col] = matrix[row, col] - constant;
+                }
+            }
+            return result;
         }
         public double this[int row, int col]
         {
