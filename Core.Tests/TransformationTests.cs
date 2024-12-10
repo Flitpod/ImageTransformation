@@ -123,5 +123,44 @@ namespace Core.Tests
             // assert
             Assert.That(actual.Values, Is.EqualTo(expected.Values));
         }
+
+        public static object[] ProjectiveTransformationDataSource_ShouldPass = new object[]
+        {
+            new object[]
+            {
+                new List<Tuple<Tuple<double, double>, Tuple<double, double>>>()
+                {
+                    new Tuple<Tuple<double, double>, Tuple<double, double>>(new Tuple<double, double>(0.0, 0.0), new Tuple<double, double>(20.0, 20.0)),
+                    new Tuple<Tuple<double, double>, Tuple<double, double>>(new Tuple<double, double>(0.0, 100.0), new Tuple<double, double>(19.0476905, 114.2857143)),
+                    new Tuple<Tuple<double, double>, Tuple<double, double>>(new Tuple<double, double>(50.0, 100.0), new Tuple<double, double>(63.6363636, 109.090909)),
+                    new Tuple<Tuple<double, double>, Tuple<double, double>>(new Tuple<double, double>(50.0, 0.0), new Tuple<double, double>(66.6666666, 19.0476905)),
+                },
+                new Matrix()
+                {
+                    Values = new double[3,3]
+                    {
+                        { 1, 0, 20 },
+                        { 0, 1, 20 },
+                        { 0.001, 0.0005, 1 },
+                    }
+                }
+            }
+        };
+        [TestCaseSource(nameof(ProjectiveTransformationDataSource_ShouldPass))]
+        public void GetProjectiveMatrix_Functional_ShouldPass(IEnumerable<Tuple<Tuple<double, double>, Tuple<double, double>>> points, Matrix expected)
+        {
+            // act
+            double error = 1e-4;
+            var actual = Transformations.GetProjectionMatrix(points);
+
+            // assert
+            for (int row = 0; row < expected.Rows; row++)
+            {
+                for (int col = 0; col < expected.Cols; col++)
+                {
+                    Assert.That(actual[row, col], Is.EqualTo(expected[row, col]).Within(error));
+                }
+            }
+        }
     }
 }
