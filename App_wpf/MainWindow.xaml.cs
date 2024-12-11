@@ -112,7 +112,7 @@ namespace ImageTransformation.App
             if (IsToolbarControlOpen()) return;
 
             // create control elements in a stackpanel
-            GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls(3);
+            GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls(matrix_size: 3);
 
             // event handler for controls close button click
             generalMatrixControls.CloseBtn.Click += (sender, e) =>
@@ -131,6 +131,33 @@ namespace ImageTransformation.App
             this.controlsGrid.Children.Add(generalMatrixControls.Controls);
         }
 
+        // create projective rectification transformation toolbar and set canvas to it
+        private void click_TransformationProjectiveRectification(object sender, RoutedEventArgs e)
+        {
+            if (IsToolbarControlOpen() || this.imageSource.Source == null) return;
+
+            // create control elements for the control grid
+            ProjectiveTransformationControls projTransfControls = new ProjectiveTransformationControls(this.canvasSource, this.imageSource);
+
+            // event handler for controls close button click
+            projTransfControls.CloseBtn.Click += (s, e) =>
+            {
+                this.transformationControls = null;
+                projTransfControls.Detach_Canvas();
+                this.controlsGrid.Children.Clear();
+                this.canvasSource.Children.Clear();
+                ;
+            };
+
+            projTransfControls.ExecuteBtn.Click += (s, e) =>
+            {
+                ExecuteProjectiveRectificationTransformation();
+            };
+
+            this.transformationControls = projTransfControls;
+            this.controlsGrid.Children.Add(projTransfControls.Controls);
+        }
+
         // get transformation matrix for rotate transformation
         private void ExecuteRotateTransformation()
         {
@@ -146,6 +173,16 @@ namespace ImageTransformation.App
         {
             if (bitmapSrc == null) return;
             GeneralMatrixControls controls = (transformationControls as GeneralMatrixControls);
+            Core.Matrix transformation = controls.GetTransformation();
+
+            ExecuteTransformation(transformation);
+        }
+
+        // get transformation matrix for projective rectification
+        private void ExecuteProjectiveRectificationTransformation()
+        {
+            if (bitmapSrc == null) return;
+            ProjectiveTransformationControls controls = (transformationControls as ProjectiveTransformationControls);
             Core.Matrix transformation = controls.GetTransformation();
 
             ExecuteTransformation(transformation);
@@ -177,5 +214,6 @@ namespace ImageTransformation.App
         {
             return transformationControls != null;
         }
+
     }
 }

@@ -109,6 +109,7 @@ namespace Core
 
         /// <summary>
         /// Calculates the projective transformation matrix H = [[h11 h12 h13], [h21 h22 h23], [h31 h32 1]] from the given 4 point pairs.
+        /// [((p1x, p1y), (p1x', p1y')), ...]
         /// </summary>
         /// <param name="pointPairs">IEnumerable of tuples which are holding 2 tuples for each point. 
         /// [((p1x, p1y), (p1x', p1y')), ...]</param>

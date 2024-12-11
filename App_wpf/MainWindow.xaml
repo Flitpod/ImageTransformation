@@ -35,6 +35,7 @@
                 <MenuItem Header="_Transformation" Height="20" VerticalAlignment="Center">
                     <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
                     <MenuItem Header="_General" Click="click_TransformationGeneral"/>
+                    <MenuItem Header="_Projective rectification" Click="click_TransformationProjectiveRectification" />
                 </MenuItem>
             </Menu>
             <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />
@@ -271,7 +272,10 @@
 
             <!-- left image is source image-->
             <Border Grid.Column="0" BorderThickness="1" BorderBrush="Gray" Margin="2" Background="{StaticResource ImageBackgroundColorBrush}" >
-                <Image x:Name="imageSource" Stretch="Uniform" />
+                <Grid>
+                    <Image x:Name="imageSource" Stretch="Uniform" />
+                    <Canvas x:Name="canvasSource" Opacity="0.9" Background="Transparent"/>
+                </Grid>
             </Border>
 
             <!-- right image is the result image-->
