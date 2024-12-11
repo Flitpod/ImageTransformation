@@ -33,7 +33,7 @@ namespace App_wpf.TransformationControls
 
             // create checkbox for rotation type: forward or backward and add to the stackpanel
             CheckBox checkBox = new CheckBox();
-            checkBox.Content = "Andvanced";
+            checkBox.Content = "Advanced";
             checkBox.IsChecked = true;
             Grid.SetColumn(checkBox, 0);
             checkBox.HorizontalAlignment = HorizontalAlignment.Center;
