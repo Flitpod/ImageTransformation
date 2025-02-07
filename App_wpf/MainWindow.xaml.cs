@@ -142,17 +142,31 @@ namespace ImageTransformation.App
             // event handler for controls close button click
             projTransfControls.CloseBtn.Click += (s, e) =>
             {
-                this.transformationControls = null;
                 projTransfControls.Detach_Canvas();
+                this.transformationControls = null;
                 this.controlsGrid.Children.Clear();
-                this.canvasSource.Children.Clear();
-                ;
             };
 
             projTransfControls.ExecuteBtn.Click += (s, e) =>
             {
                 ExecuteProjectiveRectificationTransformation();
             };
+
+            //// create control elements for the control grid
+            //ProjRectControls projRectControls = new ProjRectControls(this.canvasSource, this.imageSource);
+
+            //// event handler for controls close button click
+            //projRectControls.CloseBtn.Click += (s, e) =>
+            //{
+            //    projRectControls.Detach();
+            //    this.transformationControls = null;
+            //    this.controlsGrid.Children.Clear();
+            //};
+
+            //projRectControls.ExecuteBtn.Click += (s, e) =>
+            //{
+            //    ExecuteProjectiveRectificationTransformation();
+            //};
 
             this.transformationControls = projTransfControls;
             this.controlsGrid.Children.Add(projTransfControls.Controls);

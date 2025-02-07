@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 namespace App_wpf.TransformationControls
 {
@@ -25,30 +28,45 @@ namespace App_wpf.TransformationControls
         }
     }
 
-    public class ProjectiveTransformationControls : TransformationControls
+    public class ProjectiveTransformationControls : TransformationControls, IDisposable
     {
-        // members
-        private Canvas _canvas;
-        private Image _image;
+        private readonly Canvas _canvas;
+        private readonly Image _image;
         private TextBlock _textBlock_MousePosition;
-        private List<WrapPoint> _points_relative;
+        private readonly List<WrapPoint> _points_relative;
         private WrapPoint _dragged_point;
-        private volatile bool _isDragging;
+        private bool _isDragging;
+        private bool _pointSelected;
         public Button ExecuteBtn { get; private set; }
 
-        // ctor
+        // Constants
+        private const double POINT_SELECTION_THRESHOLD = 10.0 / 400.0;
+        private const double ELLIPSE_SIZE = 4.0;
+
         public ProjectiveTransformationControls(Canvas canvas, Image image)
         {
-            _image = image;
-            this._points_relative = new List<WrapPoint>() // { topleft, topright, bottomright, bottomleft }
-            {
-                new WrapPoint(new Point(x: 0,y: 0)),
-                new WrapPoint (new Point(x : 1, y : 0)),
-                new WrapPoint (new Point(x : 1, y : 1)),
-                new WrapPoint (new Point(x : 0, y : 1)),
-            };
+            _canvas = canvas ?? throw new ArgumentNullException(nameof(canvas));
+            _image = image ?? throw new ArgumentNullException(nameof(image));
+            _points_relative = InitializePoints();
+            
             CreateLayout();
-            Canvas_Init(canvas);
+            InitializeCanvas();
+        }
+
+        private List<WrapPoint> InitializePoints() => new List<WrapPoint>
+        {
+            new WrapPoint(new Point(0, 0)),
+            new WrapPoint(new Point(1, 0)),
+            new WrapPoint(new Point(1, 1)),
+            new WrapPoint(new Point(0, 1)),
+        };
+
+        private void InitializeCanvas()
+        {
+            _canvas.MouseDown += Handler_MouseDown;
+            _canvas.MouseMove += Handler_MouseMove;
+            _canvas.MouseUp += Handler_MouseUp;
+            _canvas.SizeChanged += Handler_SizeChanged;
         }
 
         // init methods
@@ -104,34 +122,23 @@ namespace App_wpf.TransformationControls
             this.CloseBtn = closeButton;
         }
 
-        private void Canvas_Init(Canvas canvas)
-        {
-            _canvas = canvas;
-            _canvas.MouseDown += Handler_MouseDown;
-            _canvas.MouseMove += Handler_MouseMove;
-            _canvas.MouseUp += Handler_MouseUp;
-            _canvas.SizeChanged += Handler_SizeChanged;
-        }
-        public void Detach_Canvas()
-        {
-            _canvas.MouseDown -= Handler_MouseDown;
-            _canvas.MouseMove -= Handler_MouseMove;
-            _canvas.MouseUp -= Handler_MouseUp;
-            _canvas.SizeChanged -= Handler_SizeChanged;
-        }
-
         // event handlers
         private void Handler_MouseDown(object sender, MouseEventArgs mouseEventArgs)
         {
+            ResetDragState();
             CheckIsDragging(mouseEventArgs);
-            UpdateDraggedPoint(mouseEventArgs);
-            DrawWeb();
+            
+            if (_pointSelected)
+            {
+                UpdateDraggedPoint(mouseEventArgs);
+                DrawWeb();
+            }
         }
         private void Handler_MouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
-            var point = MousePositionOverImage(mouseEventArgs);
-            this._textBlock_MousePosition.Text = $"col: {Math.Round(point.X, 0)}, row: {Math.Round(point.Y, 0)}";
-            if (_isDragging)
+            UpdateMousePositionText(mouseEventArgs);
+            
+            if (_isDragging && _pointSelected && mouseEventArgs.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateDraggedPoint(mouseEventArgs);
                 DrawWeb();
@@ -139,11 +146,29 @@ namespace App_wpf.TransformationControls
         }
         private void Handler_MouseUp(object sender, MouseEventArgs mouseEventArgs)
         {
-            MouseUp_DragHandler(mouseEventArgs);
+            if (_pointSelected)
+            {
+                UpdateDraggedPoint(mouseEventArgs);
+                DrawWeb();
+            }
+            ResetDragState();
         }
         private void Handler_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             DrawWeb();
+        }
+
+        private void ResetDragState()
+        {
+            _pointSelected = false;
+            _isDragging = false;
+            _dragged_point = null;
+        }
+
+        private void UpdateMousePositionText(MouseEventArgs mouseEventArgs)
+        {
+            var point = MousePositionOverImage(mouseEventArgs);
+            _textBlock_MousePosition.Text = $"col: {Math.Round(point.X)}, row: {Math.Round(point.Y)}";
         }
 
         // get transformation method
@@ -189,40 +214,14 @@ namespace App_wpf.TransformationControls
         {
             _canvas.Children.Clear();
 
-            // calculate the offsets of visual elements related to image to position the over
-            double diff_w = Math.Abs(_canvas.ActualWidth - _image.ActualWidth);
-            double diff_h = Math.Abs(_canvas.ActualHeight - _image.ActualHeight);
-            double offset_w = diff_w / 2;
-            double offset_h = diff_h / 2;
-
-            // create visual elements and add the to the canvas
-            double ellipse_half_size = 5;
-            Polygon polygon = new Polygon()
+            var (offsetW, offsetH) = CalculateOffsets();
+            var polygon = CreatePolygon(offsetW, offsetH);
+            
+            foreach (var point in _points_relative)
             {
-                StrokeThickness = 3,
-                Stroke = Brushes.Red,
-            };
-            Canvas.SetLeft(polygon, offset_w);
-            Canvas.SetTop(polygon, offset_h);
-
-            foreach (var item in _points_relative)
-            {
-                // calculate absolut positions based on actual height and width from relative points
-                double col = item.X * _image.ActualWidth;
-                double row = item.Y * _image.ActualHeight;
-
-                Ellipse ellipse = new Ellipse()
-                {
-                    Fill = Brushes.Red,
-                    Width = 2 * ellipse_half_size,
-                    Height = 2 * ellipse_half_size,
-                };
-
-                Canvas.SetLeft(ellipse, offset_w + col - ellipse_half_size);
-                Canvas.SetTop(ellipse, offset_h + row - ellipse_half_size);
-
-                polygon.Points.Add(new Point(x: col, y: row));
-                _canvas.Children.Add(ellipse);
+                var (col, row) = GetAbsolutePosition(point);
+                AddPointEllipse(offsetW, offsetH, col, row);
+                polygon.Points.Add(new Point(col, row));
             }
 
             _canvas.Children.Add(polygon);
@@ -261,26 +260,21 @@ namespace App_wpf.TransformationControls
             return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
         }
 
-        // drag & drop behavior of the polygons
         private void CheckIsDragging(MouseEventArgs mouseEventArgs)
         {
-            if (_isDragging || mouseEventArgs.LeftButton != MouseButtonState.Pressed)
-            {
+            if (mouseEventArgs.LeftButton != MouseButtonState.Pressed)
                 return;
-            }
 
             Point cursorPos = MousePositionOverImage(mouseEventArgs);
-            Point normalized_cursorPosition = GetNormalizedPosition(cursorPos);
-            double normalized_distance = 10 / 400.0;
+            Point normalizedCursorPosition = GetNormalizedPosition(cursorPos);
 
-            foreach (var point in _points_relative)
+            _dragged_point = _points_relative.FirstOrDefault(point => 
+                GetDistance(point.GetPoint(), normalizedCursorPosition) <= POINT_SELECTION_THRESHOLD);
+
+            if (_dragged_point != null)
             {
-                if (GetDistance(point.GetPoint(), normalized_cursorPosition) <= normalized_distance)
-                {
-                    _isDragging = true;
-                    _dragged_point = point;
-                    return;
-                }
+                _pointSelected = true;
+                _isDragging = true;
             }
         }
         private void UpdateDraggedPoint(MouseEventArgs mouseEventArgs)
@@ -295,18 +289,65 @@ namespace App_wpf.TransformationControls
 
             this._dragged_point.X = norm_pos.X;
             this._dragged_point.Y = norm_pos.Y;
-            ;
         }
-        private void MouseUp_DragHandler(MouseEventArgs mouseEventArgs)
+
+        private (double offsetW, double offsetH) CalculateOffsets()
         {
-            if (mouseEventArgs.LeftButton == MouseButtonState.Released)
+            double diffW = Math.Abs(_canvas.ActualWidth - _image.ActualWidth);
+            double diffH = Math.Abs(_canvas.ActualHeight - _image.ActualHeight);
+            return (diffW / 2, diffH / 2);
+        }
+
+        private Polygon CreatePolygon(double offsetW, double offsetH)
+        {
+            var polygon = new Polygon
             {
-                UpdateDraggedPoint(mouseEventArgs);
-                DrawWeb();
-                _isDragging = false;
-                _dragged_point = null;
-                mouseEventArgs.Handled = true;
+                StrokeThickness = 1.5,
+                Stroke = Brushes.Red
+            };
+            Canvas.SetLeft(polygon, offsetW);
+            Canvas.SetTop(polygon, offsetH);
+            return polygon;
+        }
+
+        private void AddPointEllipse(double offsetW, double offsetH, double col, double row)
+        {
+            var ellipse = new Ellipse
+            {
+                Fill = Brushes.Red,
+                Width = 2 * ELLIPSE_SIZE,
+                Height = 2 * ELLIPSE_SIZE
+            };
+
+            Canvas.SetLeft(ellipse, offsetW + col - ELLIPSE_SIZE);
+            Canvas.SetTop(ellipse, offsetH + row - ELLIPSE_SIZE);
+            _canvas.Children.Add(ellipse);
+        }
+
+        private (double col, double row) GetAbsolutePosition(WrapPoint point) =>
+            (point.X * _image.ActualWidth, point.Y * _image.ActualHeight);
+
+        public void Dispose()
+        {
+            Detach_Canvas();
+            GC.SuppressFinalize(this);
+        }
+
+        public void Detach_Canvas()
+        {
+            if (_canvas != null)
+            {
+                _canvas.MouseDown -= Handler_MouseDown;
+                _canvas.MouseMove -= Handler_MouseMove;
+                _canvas.MouseUp -= Handler_MouseUp;
+                _canvas.SizeChanged -= Handler_SizeChanged;
+
+                _canvas.Children.Clear();
             }
+
+            _textBlock_MousePosition = null;
+            _points_relative?.Clear();
+            _dragged_point = null;
         }
     }
 }
