@@ -37,8 +37,8 @@ namespace Core.Filters
             byte* ptrDest0 = (byte*)bmData_dest.Scan0;
             int strideSrc = (int)bmData_src.Stride;
             int strideDest = (int)bmData_dest.Stride;
-            int pixFormatSrc = (int)bmData_src.PixelFormat / 3;
-            int pixFormatDest = (int)bmData_dest.PixelFormat / 3;
+            int pixFormatSrc = (int)bmData_src.PixelFormat / 8;
+            int pixFormatDest = (int)bmData_dest.PixelFormat / 8;
             int witdh = (int)bmData_src.Width;
             int height = (int)bmData_src.Height;
 
