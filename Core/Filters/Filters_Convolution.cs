@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using ImageTransformation.Core;
 using System.Threading.Channels;
 
-namespace Core.Filters
+namespace Core
 {
     public partial class Filters
     {
