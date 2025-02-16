@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -21,7 +22,60 @@ namespace ImageTransformation.Core
         public int Cols { get; private set; }
     }
 
-    public class Matrix
+    public class MatrixEnumerator : IEnumerator, IEnumerator<double>
+    {
+        // fields
+        private Matrix _matrix;
+        private int _col;
+        private int _row;
+
+        // ctor
+        public MatrixEnumerator(Matrix matrix)
+        {
+            _matrix = matrix;
+            _col = -1;
+            _row = 0;
+        }
+
+        // properties
+        public double Current => _matrix[row: _row, col: _col];
+        object IEnumerator.Current => _matrix[row: _row, col: _col];
+
+        // methods
+        public void Dispose() { }
+
+
+        public bool MoveNext()
+        {
+            // if after the move we get valid index, then we can step on that valid column index
+            if (_col + 1 < _matrix.Cols)
+            {
+                _col++;
+                return true;
+            }
+
+            // we have gotten an invalid column index after step
+            // -> step onto the next row if it is valid
+            // -> reset the column index
+            if (_row + 1 < _matrix.Rows)
+            {
+                _col = 0;
+                _row++;
+                return true;
+            }
+
+            // end of enumeration
+            return false;
+        }
+
+        public void Reset()
+        {
+            _col = -1;
+            _row = 0;
+        }
+    }
+
+    public class Matrix: IEnumerable<double>
     {
         // fields - properties
         private double[,] values;
@@ -257,6 +311,17 @@ namespace ImageTransformation.Core
                 }
             }
             return result;
+        }
+
+        // enumeration - Implementation of IEnumerable interface
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return new MatrixEnumerator(this);
+        }
+
+        public IEnumerator<double> GetEnumerator()
+        {
+            return new MatrixEnumerator(this);
         }
     }
 }

@@ -285,7 +285,7 @@ namespace Core.Tests
         public void CheckRowChangeReturnSignForReducedEchelonFormCalculation_Functional_ShouldPass(Matrix actual, Matrix expected, int row, int col, int expectedSign)
         {
             // act
-            int sign = (int)typeof(Matrix).GetMethod("CheckRowChangeReturnSign")?.Invoke( null ,new object[] { actual, row, col});
+            int sign = (int)typeof(Matrix).GetMethod("CheckRowChangeReturnSign")?.Invoke(null, new object[] { actual, row, col });
 
             // assert
             Assert.That(sign, Is.EqualTo(expectedSign));
@@ -610,6 +610,45 @@ namespace Core.Tests
 
             // assert
             Assert.That(actual.Values, Is.EqualTo(expected.Values));
+        }
+
+
+        public static object[] MatrixEnumeration_Data_ShouldPass = new object[]
+        {
+            new object[]
+            {
+                new Matrix()
+                {
+                    Values = new double[3,3]
+                    {
+                        { 1, 2, 3 },
+                        { 4, 5, 6 },
+                        { 7, 8, 9 },
+                    }
+                },
+                new double[] {1, 2, 3, 4, 5, 6, 7, 8, 9 }
+            },
+            new object[]
+            {
+                new Matrix()
+                {
+                    Values = new double[2,3]
+                    {
+                        { 2, 4, 6 },
+                        { 8, 10, 12 },
+                    }
+                },
+                new double[] {2, 4, 6, 8, 10, 12 }
+            },
+        };
+        [TestCaseSource(nameof(MatrixEnumeration_Data_ShouldPass))]
+        public void MatrixEnumeration_Functional_ShouldPass(Matrix matrix, IEnumerable<double> expected)
+        {
+            // ACT
+            var actual = matrix.Select(x => x);
+
+            // ASSERT
+            Assert.That(actual, Is.EqualTo(expected));
         }
     }
 }
