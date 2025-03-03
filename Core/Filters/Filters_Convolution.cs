@@ -93,11 +93,11 @@ namespace Core
             ptrDest0 = (byte*)(ptrDest0 + offsetDest * strideDest + offsetDest * pixFormatDest);
 
             // process the image parallel
-            // column loop
-            Parallel.For(0, height, (col) =>
+            // row loop
+            Parallel.For(fromInclusive: 0, toExclusive: height, body: (row) =>
             {
-                // row loop
-                for (int row = 0; row < width; row++)
+                // col loop
+                for (int col = 0; col < width; col++)
                 {
                     // create pointers to source data and destination data address
                     byte* ptrSrc = (byte*)(ptrSrc0 + row * strideSrc + col * pixFormatSrc);
