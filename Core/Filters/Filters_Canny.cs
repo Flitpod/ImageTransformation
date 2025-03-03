@@ -16,7 +16,7 @@ namespace Core
         /// </summary>
         /// <param name="source">RGB 8 bit depth bitmap image</param>
         /// <param name="destination">8 bit depth binary image (3 channel) with 2 value: 0 - background, 255 - foreground / edge</param>
-        public static void ApplyCanny(Bitmap source, Bitmap destination)
+        public static void ApplyCanny(Bitmap source, ref Bitmap destination)
         {
             // STEPS
             // 1. rgb -> gray
@@ -25,6 +25,12 @@ namespace Core
             // 4. non maximum edge pixels supression in normal direction to the edge
             // 5. double threshold on edges -> hysteresis bandwidth (25, 255)
             // 6. convolve weak and strong edges with window and glue strong edges together
+
+            // 0. Check image sources
+            Filters.NullCheckImages(
+                source: source,
+                destination: ref destination
+            );
 
             // 1. convert to gray image
             Filters.ConvertToGray(
@@ -111,6 +117,19 @@ namespace Core
 
             // Unlock bitmaps
             UnlockBitmaps(destination: destination, buffer: buffer, bitmapDataDestination: bitmapDataDestination, bitmapDataBuffer: bitmapDataBuffer);
+        }
+
+        private static void NullCheckImages(Bitmap source, ref Bitmap destination)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException("source");
+            }
+
+            if (destination == null || source.Width != destination.Width || source.Height != destination.Height)
+            {
+                destination = new Bitmap(source);
+            }
         }
 
         private static void GaussBlur(Bitmap source, Bitmap destination)
