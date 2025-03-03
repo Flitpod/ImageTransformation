@@ -172,6 +172,16 @@ namespace ImageTransformation.App
             this.controlsGrid.Children.Add(projTransfControls.Controls);
         }
 
+        private void click_FilterCanny(object sender, RoutedEventArgs e)
+        {
+            if (imageSource.Source == null)
+            {
+                return;
+            }
+            Filters.ApplyCanny(source: bitmapSrc, destination: ref bitmapDst);
+            RefreshImages();
+        }
+
         // get transformation matrix for rotate transformation
         private void ExecuteRotateTransformation()
         {

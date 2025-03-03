@@ -27,15 +27,24 @@
                 <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
             <Menu Grid.Column="0" Height="20">
+                
+                <!-- File menu-->
                 <MenuItem Header="_File" Height="20" VerticalAlignment="Center" >
                     <MenuItem Header="_Open" Click="click_OpenFileDialog" />
                     <MenuItem Header="_Save" Click="click_SaveFileDialog"/>
                     <MenuItem Header="_Close" Click="click_CloseFile"/>
                 </MenuItem>
+                
+                <!-- Transformation menu -->
                 <MenuItem Header="_Transformation" Height="20" VerticalAlignment="Center">
                     <MenuItem Header="_Rotate" Click="click_TransformationRotate"/>
                     <MenuItem Header="_General" Click="click_TransformationGeneral"/>
                     <MenuItem Header="_Projective rectification" Click="click_TransformationProjectiveRectification" />
+                </MenuItem>
+                
+                <!-- Filter menu -->
+                <MenuItem Header="_Filter" Height="20" VerticalAlignment="Center">
+                    <MenuItem Header="_Canny" Click="click_FilterCanny" />
                 </MenuItem>
             </Menu>
             <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />
