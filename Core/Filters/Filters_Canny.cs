@@ -88,23 +88,30 @@ namespace Core
             // 5. double threshold on edges -> hysteresis bandwidth (25, 255)
             ApplyDoubleThreshold(
                 source: buffer,
-                destination: destination,
+                destination: buffer,
                 bitmapDataSource: bitmapDataBuffer,
-                bitmapDataDestination: bitmapDataDestination,
+                bitmapDataDestination: bitmapDataBuffer,
                 thresholdLow: 25,
                 thresholdHigh: 255
             );
 
             // 6. convolve weak and strong edges with window and glue strong edges together
-
+            ProcessWeakAndStrongEdges(
+                source: buffer,
+                destination: destination,
+                bitmapDataSource: bitmapDataBuffer,
+                bitmapDataDestination: bitmapDataDestination
+            );
 
             // set the frame to value 0
-
+            SetFrameToZero(
+                image: destination,
+                bitmapDataImage: bitmapDataDestination
+            );
 
             // Unlock bitmaps
             UnlockBitmaps(destination: destination, buffer: buffer, bitmapDataDestination: bitmapDataDestination, bitmapDataBuffer: bitmapDataBuffer);
         }
-
 
         private static void GaussBlur(Bitmap source, Bitmap destination)
         {
@@ -140,11 +147,6 @@ namespace Core
                 flags: ImageLockMode.ReadWrite,
                 format: PixelFormat.Format32bppRgb
             );
-        }
-        private static void UnlockBitmaps(Bitmap destination, Bitmap buffer, BitmapData bitmapDataDestination, BitmapData bitmapDataBuffer)
-        {
-            destination.UnlockBits(bitmapDataDestination);
-            buffer.UnlockBits(bitmapDataDestination);
         }
         private static unsafe void ApplySobel(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination, out int[,] gradientDirectionMap)
         {
@@ -331,7 +333,6 @@ namespace Core
                 }
             });
         }
-
         /// <summary>
         /// Applies double/hysteresis threshold on the image. Strong edge pixels will have value of 255, and weak edge pixels will have the value of 128.
         /// </summary>
@@ -382,6 +383,114 @@ namespace Core
                     }
                 }
             });
+        }
+        private static unsafe void ProcessWeakAndStrongEdges(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination)
+        {
+            //  DESCRIPTION
+            //
+            // This method convolve the source image with a 3x3 kernel.
+            // - When find a strong pixel, write it to the destination image
+            // - When find a weak pixel, then:
+            //      - If there is at least 1 strong pixel in the kernel, then the result pixel will be set to 255
+            //      - If there is no strong pixel in the kernel, then the result pixel will be set to 255
+
+            // get info locally for faster access
+            int height = source.Height - 2;
+            int width = source.Width - 2;
+            int stride = bitmapDataSource.Stride;
+            int pixFormat = (int)bitmapDataSource.PixelFormat / 8;
+            byte* ptrSrc0 = (byte*)(bitmapDataSource.Scan0 + stride + pixFormat);
+            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + pixFormat);
+
+            // process the image parallel
+            Parallel.For(fromInclusive: 0, toExclusive: height, body: (row) =>
+            {
+                for (int col = 0; col < height; col++)
+                {
+                    // pointer to current pixels
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixFormat);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixFormat);
+
+                    // get the current value
+                    byte currentValue = ptrSrc[0];
+
+                    // Investigate the current pixel value. Possible values are:
+                    //  - 0 -> no action, write into destination image
+                    //  - 255 -> no action, write into destination image
+                    //  - 128 -> check around the current pixel, is there at least one strong pixel in the kernel
+                    if (currentValue == 128)
+                    {
+                        // kernel row
+                        for (int wRow = -1; wRow <= 1; wRow++)
+                        {
+                            // kernel col
+                            for (int wCol = -1; wCol <= 1; wCol++)
+                            {
+                                // if at least 1 strong pixel
+                                if (ptrSrc[wRow * stride + wCol * pixFormat] == 255)
+                                {
+                                    currentValue = 255;
+                                }
+                            }
+                        }
+
+                        // if there was no strong pixel in the kernel around the current pixel,
+                        // then the destination pixel value must set to 0
+                        if (currentValue == 128)
+                        {
+                            currentValue = 0;
+                        }
+                    }
+
+                    // set the destination pixel value based on the checked and corrected value
+                    for (int channel = 0; channel < 3; channel++)
+                    {
+                        ptrDest[channel] = currentValue;
+                    }
+                }
+            });
+        }
+        private static unsafe void SetFrameToZero(Bitmap image, BitmapData bitmapDataImage)
+        {
+            // get info locally for faster access
+            int height = image.Height;
+            int width = image.Width;
+            long imageLength = height * width;
+            int stride = bitmapDataImage.Stride;
+            int pixFormat = (int)bitmapDataImage.PixelFormat / 8;
+            byte* ptrImg0 = (byte*)bitmapDataImage.Scan0;
+
+            // top and bottom rows
+            for (int col = 0; col < width; col++)
+            {
+                for (int channel = 0; channel < 3; channel++)
+                {
+                    // upper row
+                    ptrImg0[col * pixFormat + channel] = 0;
+
+                    // bottom row
+                    ptrImg0[imageLength - (col * pixFormat + channel)] = 0;
+                }
+            }
+
+            // left and right cols
+            for (int row = 0; row < width; row++)
+            {
+                for (int channel = 0; channel < 3; channel++)
+                {
+                    // left col
+                    ptrImg0[row * stride + channel] = 0;
+
+                    // right col
+                    ptrImg0[imageLength - (row * stride + channel)] = 0;
+                }
+            }
+
+        }
+        private static void UnlockBitmaps(Bitmap destination, Bitmap buffer, BitmapData bitmapDataDestination, BitmapData bitmapDataBuffer)
+        {
+            destination.UnlockBits(bitmapDataDestination);
+            buffer.UnlockBits(bitmapDataDestination);
         }
     }
 }
