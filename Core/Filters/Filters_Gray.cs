@@ -37,10 +37,10 @@ namespace Core
             byte* ptrDest0 = (byte*)bmData_dest.Scan0;
             int strideSrc = (int)bmData_src.Stride;
             int strideDest = (int)bmData_dest.Stride;
-            int pixFormatSrc = (int)bmData_src.PixelFormat / 8;
-            int pixFormatDest = (int)bmData_dest.PixelFormat / 8;
             int witdh = (int)bmData_src.Width;
             int height = (int)bmData_src.Height;
+            int pixFormatSrc = strideSrc / witdh;
+            int pixFormatDest = strideDest / witdh;
 
             // generate lut for transformation
             byte[] lutGray = new byte[3 * 256];
@@ -51,10 +51,10 @@ namespace Core
 
             // process the image parallel
             // column loop
-            Parallel.For(0, height, (col) =>
+            Parallel.For(0, height, (row) =>
             {
                 // row loop
-                for (int row = 0; row < witdh; row++)
+                for (int col = 0; col < witdh; col++)
                 {
                     // create pointers to source data and destination data address
                     byte* ptrSrc = (byte*)(ptrSrc0 + row * strideSrc + col * pixFormatSrc);
