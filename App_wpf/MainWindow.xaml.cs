@@ -124,7 +124,7 @@ namespace ImageTransformation.App
             generalMatrixControls.Backward.Click += (s, e) => ExecuteGeneralTransformation();
 
             // event handler for controls execute button click
-            generalMatrixControls.ExecuteBtn.Click += (s,e) => ExecuteGeneralTransformation();
+            generalMatrixControls.ExecuteBtn.Click += (s, e) => ExecuteGeneralTransformation();
 
             // add the stackpanel to the grid
             this.transformationControls = generalMatrixControls;
