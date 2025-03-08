@@ -7,24 +7,121 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ImageTransformation.Core;
+using System.IO.MemoryMappedFiles;
 
 namespace Core.Processors
 {
     internal class CannyProcessor
     {
-        internal static void NullCheckImages(Bitmap source, ref Bitmap destination)
+        internal static void NullCheckImages(
+            Bitmap source,
+            ref Bitmap destination
+        )
         {
             if (source == null)
             {
                 throw new ArgumentNullException("source");
             }
 
-            if (destination == null || source.Width != destination.Width || source.Height != destination.Height || source.PixelFormat != destination.PixelFormat)
+            if (destination == null || source.Width != destination.Width || source.Height != destination.Height || PixelFormat.Format8bppIndexed != destination.PixelFormat)
             {
-                destination = new Bitmap(width: source.Width, height: source.Height, format: source.PixelFormat);
+                destination = new Bitmap(width: source.Width, height: source.Height, format: PixelFormat.Format8bppIndexed);
             }
         }
-        internal static void GaussBlur(Bitmap source, Bitmap destination)
+
+        internal static void LockBitmaps(
+            Bitmap source,
+            Bitmap destination,
+            Bitmap buffer,
+            out BitmapData bitmapDataSource,
+            out BitmapData bitmapDataDestination,
+            out BitmapData bitmapDataBuffer
+        )
+        {
+            // source image lock in memory
+            bitmapDataSource = source.LockBits(
+                rect: new Rectangle(new Point(0, 0), source.Size),
+                flags: ImageLockMode.ReadOnly,
+                format: source.PixelFormat
+            );
+
+            // destination image lock in memory
+            bitmapDataDestination = destination.LockBits(
+                rect: new Rectangle(new Point(0, 0), destination.Size),
+                flags: ImageLockMode.ReadWrite,
+                format: destination.PixelFormat
+            );
+
+            // buffer image lock in memory
+            bitmapDataBuffer = buffer.LockBits(
+                rect: new Rectangle(new Point(0, 0), buffer.Size),
+                flags: ImageLockMode.ReadWrite,
+                format: destination.PixelFormat
+            );
+        }
+
+        /// <summary>
+        /// Convert a 3 channel (rgb) image into an 8 bit depth grayscale image.
+        /// </summary>
+        /// <param name="source">24 or 32 bit depth RGB image</param>
+        /// <param name="destination">8 bit depth grayscale image</param>
+        internal static unsafe void ConvertToGray(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination
+        )
+        {
+            // get info locally for faster access
+            byte* ptrSrc0 = (byte*)bitmapDataSource.Scan0;
+            byte* ptrDest0 = (byte*)bitmapDataDestination.Scan0;
+            int strideSrc = (int)bitmapDataSource.Stride;
+            int strideDest = (int)bitmapDataDestination.Stride;
+            int witdh = (int)bitmapDataSource.Width;
+            int height = (int)bitmapDataSource.Height;
+            int pixFormatSrc = strideSrc / witdh;
+            int pixFormatDest = strideDest / witdh;
+
+            // generate lut for transformation
+            byte[] lutGray = new byte[3 * 256];
+            for (int i = 0; i < 3 * 256; i++)
+            {
+                lutGray[i] = (byte)(i / 3);
+            }
+
+            // process the image parallel
+            // column loop
+            Parallel.For(0, height, (row) =>
+            {
+                // row loop
+                for (int col = 0; col < witdh; col++)
+                {
+                    // create pointers to source data and destination data address
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * strideSrc + col * pixFormatSrc);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * strideDest + col * pixFormatDest);
+
+                    // calculate the gray value from rgb values for each pixel
+                    byte grayvalue = lutGray[ptrSrc[0] + ptrSrc[1] + ptrSrc[2]];
+
+                    // set the calculated gray value in the destination image
+                    ptrDest[0] = grayvalue;
+                }
+            });
+        }
+
+        /// <summary>
+        /// Apply binomial gauss blur with 3x3 kernel on the 8 bit depth grayscale image
+        /// </summary>
+        /// <param name="source">8 bit depth, grayscale image</param>
+        /// <param name="destination">8 bit depth, grayscale image</param>
+        /// <param name="bitmapDataSource"></param>
+        /// <param name="bitmapDataDestination"></param>
+        internal unsafe static void GaussBlur(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination
+        )
         {
             // create binomial gauss filter 3x3
             Matrix filter = new Matrix()
@@ -36,31 +133,72 @@ namespace Core.Processors
                     { 1, 2, 1 },
                 }
             };
+            int filterScaleFactor = (int)filter.Sum();
 
-            // apply gauss filter
-            Filters.ApplyFilter(
-                source: source,
-                destination: ref destination,
-                filter: filter,
-                filterScaleFactor: filter.Sum(num => Math.Abs(num))
-            );
-        }
-        internal static void LockBitmaps(Bitmap destination, Bitmap buffer, out BitmapData bitmapDataDestination, out BitmapData bitmapDataBuffer)
-        {
-            bitmapDataDestination = destination.LockBits(
-                rect: new Rectangle(new Point(0, 0), destination.Size),
-                flags: ImageLockMode.ReadWrite,
-                format: destination.PixelFormat
-            );
+            // get info locally for faster access
+            int strideSrc = (int)bitmapDataSource.Stride;
+            int strideDest = (int)bitmapDataDestination.Stride;
+            byte* ptrSrc0 = (byte*)bitmapDataSource.Scan0;
+            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + strideDest + 1);
+            int width = (int)bitmapDataSource.Width - filter.Cols + 1;
+            int height = (int)bitmapDataSource.Height - filter.Rows + 1;
 
-            bitmapDataBuffer = buffer.LockBits(
-                rect: new Rectangle(new Point(0, 0), buffer.Size),
-                flags: ImageLockMode.ReadWrite,
-                format: destination.PixelFormat
-            );
+            // row loop
+            Parallel.For(fromInclusive: 0, toExclusive: height, body: (row) =>
+            {
+                // col loop
+                for (int col = 0; col < width; col++)
+                {
+                    // create pointers to source data and destination data address
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * strideSrc + col);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * strideDest + col);
+
+                    // create buffer for results
+                    double value = 0;
+
+                    // store locally the size of the filter window
+                    int windowHeight = filter.Rows;
+                    int windowWidth = filter.Cols;
+
+                    // apply filter factors on input image data
+                    for (int wRow = 0; wRow < windowHeight; wRow++)
+                    {
+                        for (int wCol = 0; wCol < windowWidth; wCol++)
+                        {
+                            value += ptrSrc[wRow * strideSrc + wCol] * filter[wRow, wCol];
+                        }
+                    }
+
+                    // set the convolved filter value in the destination image
+                    ptrDest[0] = (byte)(value / filterScaleFactor);
+                }
+            });
         }
-        internal static unsafe void ApplySobel(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination, out int[,] gradientDirectionMap, out int gradientMaxValue)
+
+        /// <summary>
+        /// Compute the sobel edge gradient values and directions. 
+        /// The gradient values/lengths will be stored in the destination image.
+        /// The gradient directions are mapped values based on 4 different gradient directions, gives back the map.
+        /// The method also gives back the maximum value/length of gradients.
+        /// </summary>
+        /// <param name="source">8 bit depth, grayscale image</param>
+        /// <param name="destination">8 bit depth, grayscale image, includes only sobel detected edges</param>
+        /// <param name="bitmapDataSource"></param>
+        /// <param name="bitmapDataDestination"></param>
+        /// <param name="gradientDirectionMap">Map with the same size as the image size without the frame. 
+        /// Stores gradient directions { 0,1,2,3 }.
+        /// </param>
+        /// <param name="gradientMaxValue">Maximum gradient value/length.</param>
+        internal static unsafe void ApplySobel(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination,
+            out int[,] gradientDirectionMap,
+            out int gradientMaxValue
+        )
         {
+            #region Description
             // create gradient direction buffer array
             // 0 ---------------- 0
             //         /|\
@@ -77,57 +215,64 @@ namespace Core.Processors
             // # 45 +- 22.5 -> 1
             // # 90 +- 22.5 -> 2
             // # 135 +- 22.5 -> 3
+            #endregion
 
             // get info locally for faster access
             int height = source.Height - 2;
             int width = source.Width - 2;
             int stride = bitmapDataSource.Stride;
-            int pixFormat = stride / bitmapDataSource.Width;
             byte* ptrSrc0 = (byte*)bitmapDataSource.Scan0;
-            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + pixFormat);
+            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + 1);
 
+            // result direction map initialization
             int[,] directionMap = new int[height, width];
+
             // local maximum storing collection
             ConcurrentBag<int> localMaximums = new ConcurrentBag<int>();
 
             // create local variables are used frequently
             const double directionUnit = Math.PI / 8;
             double sqrtOf2 = Math.Sqrt(2);
+            int localMax = 0;
 
             // parallel calculation
             Parallel.For(fromInclusive: 0, toExclusive: height,
+
+                // execute once before loop starts 
                 localInit: () => 0,
+
+                // execute in every loop
                 body: (row, loopState, localMax) =>
                 {
                     for (int col = 0; col < width; col++)
                     {
                         // pointer to current pixels
-                        byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixFormat);
-                        byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixFormat);
+                        byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col);
+                        byte* ptrDest = (byte*)(ptrDest0 + row * stride + col);
 
                         // calculate x direction gradient value an divide it with 4 (>>2)
                         int gradX =
                             ptrSrc[0]
                             + 2 * ptrSrc[stride]
                             + ptrSrc[2 * stride]
-                            - ptrSrc[2 * pixFormat]
-                            - 2 * ptrSrc[stride + 2 * pixFormat]
-                            - ptrSrc[2 * (stride + pixFormat)];
+                            - ptrSrc[2]
+                            - 2 * ptrSrc[stride + 2]
+                            - ptrSrc[2 * (stride + 1)];
                         gradX >>= 2;
 
                         // calculate y direction gradient value an divide it with 4 (>>2)
                         int gradY =
                             ptrSrc[0]
-                            + 2 * ptrSrc[pixFormat]
-                            + ptrSrc[2 * pixFormat]
+                            + 2 * ptrSrc[1]
+                            + ptrSrc[2]
                             - ptrSrc[2 * stride]
-                            - 2 * ptrSrc[2 * stride + pixFormat]
-                            - ptrSrc[2 * (stride + pixFormat)];
+                            - 2 * ptrSrc[2 * stride + 1]
+                            - ptrSrc[2 * (stride + 1)];
                         gradY >>= 2;
 
                         // calculate gradient length and save it into the destination image
                         int gradLength = (int)(Math.Sqrt(gradX * gradX + gradY * gradY) / sqrtOf2);
-                        ptrDest[0] = ptrDest[1] = ptrDest[2] = (byte)gradLength;
+                        ptrDest[0] = (byte)gradLength;
 
                         // checks if the current value is bigger than the already find local maximum
                         localMax = Math.Max(localMax, gradLength);
@@ -154,8 +299,10 @@ namespace Core.Processors
                         directionMap[row, col] = gradMapDirection;
                     }
                     // return the thread local maximum value
-                    return (int)localMax;
+                    return localMax;
                 },
+
+                // execute once after loop ends
                 localFinally: (localMax) => localMaximums.Add(localMax)
             );
 
@@ -165,7 +312,14 @@ namespace Core.Processors
             // initialize the maximum gradient out parameter with the value of the maximum gradient length
             gradientMaxValue = localMaximums.Max();
         }
-        internal static unsafe void SuppressNonMaximums(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination, int[,] gradientDirectionMap)
+
+        internal static unsafe void SuppressNonMaximums(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination,
+            int[,] gradientDirectionMap
+        )
         {
             #region direction description
             // create gradient direction buffer array
@@ -216,9 +370,8 @@ namespace Core.Processors
             int height = source.Height - 2;
             int width = source.Width - 2;
             int stride = bitmapDataSource.Stride;
-            int pixFormat = stride / bitmapDataSource.Width;
-            byte* ptrSrc0 = (byte*)(bitmapDataSource.Scan0 + stride + pixFormat);
-            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + pixFormat);
+            byte* ptrSrc0 = (byte*)(bitmapDataSource.Scan0 + stride + 1);
+            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + 1);
 
             // parallel process the image an suppress the non maximum values in normal direction
             Parallel.For(fromInclusive: 0, toExclusive: height, (row) =>
@@ -226,8 +379,8 @@ namespace Core.Processors
                 for (int col = 0; col < width; col++)
                 {
                     // create pointers to the current pixels in the source and destination image
-                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixFormat);
-                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixFormat);
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col);
 
                     // get spatial offset values due to gradient direction map value
                     var (rowLeft, colLeft, rowRight, colRight) = (gradientDirectionMap[row, col]) switch
@@ -239,8 +392,8 @@ namespace Core.Processors
                     };
 
                     // calculate memory offset values based on spatial offset values
-                    int offsetLeft = rowLeft * stride + colLeft * pixFormat;
-                    int offsetRight = rowRight * stride + colRight * pixFormat;
+                    int offsetLeft = rowLeft * stride + colLeft;
+                    int offsetRight = rowRight * stride + colRight;
 
                     // suppress the non maximum values
                     byte currentValue = ptrSrc[0];
@@ -251,13 +404,11 @@ namespace Core.Processors
                     }
 
                     // set the destination pixel value to the calulated value
-                    for (int i = 0; i < 3; i++)
-                    {
-                        ptrDest[i] = currentValue;
-                    }
+                    ptrDest[0] = currentValue;
                 }
             });
         }
+
         /// <summary>
         /// Applies double/hysteresis threshold on the image. Strong edge pixels will have value of 255, and weak edge pixels will have the value of 128.
         /// </summary>
@@ -267,7 +418,15 @@ namespace Core.Processors
         /// <param name="bitmapDataDestination">BitmapData for destination image</param>
         /// <param name="thresholdLow">Lower threshold, below this the corresponding pixel value will be 0. Above the threshold the value will be 128 as marked weak edge</param>
         /// <param name="thresholdHigh">Above or equal this the pixel value will be 255.</param>
-        internal static unsafe void ApplyDoubleThreshold(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination, int gradientMaxValue, double thresholdLowRatio = 0.25, double thresholdHighRatio = 0.9)
+        internal static unsafe void ApplyDoubleThreshold(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination,
+            int gradientMaxValue,
+            double thresholdLowRatio = 0.25,
+            double thresholdHighRatio = 0.9
+        )
         {
             // calculate the threshold values
             int thresholdLow = (int)(gradientMaxValue * thresholdLowRatio);
@@ -277,7 +436,6 @@ namespace Core.Processors
             int height = source.Height;
             int width = source.Width;
             int stride = bitmapDataSource.Stride;
-            int pixFormat = stride / bitmapDataSource.Width;
             byte* ptrSrc0 = (byte*)bitmapDataSource.Scan0;
             byte* ptrDest0 = (byte*)bitmapDataDestination.Scan0;
 
@@ -287,8 +445,8 @@ namespace Core.Processors
                 for (int col = 0; col < width; col++)
                 {
                     // pointer to current pixels
-                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixFormat);
-                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixFormat);
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col);
 
                     // apply double threshold
                     byte currentValue = ptrSrc[0];
@@ -306,14 +464,28 @@ namespace Core.Processors
                     }
 
                     // set the calulated pixel value in the destination image based on the thresholds
-                    for (int i = 0; i < 3; i++)
-                    {
-                        ptrDest[i] = currentValue;
-                    }
+                    ptrDest[0] = currentValue;
                 }
             });
         }
-        internal static unsafe void ProcessWeakAndStrongEdges(Bitmap source, Bitmap destination, BitmapData bitmapDataSource, BitmapData bitmapDataDestination)
+
+        /// <summary>
+        /// This method convolve the source image with a 3x3 kernel.
+        /// - When find a strong pixel, write it to the destination image
+        /// - When find a weak pixel, then:
+        ///      - If there is at least 1 strong pixel in the kernel, then the result pixel will be set to 255
+        ///      - If there is no strong pixel in the kernel, then the result pixel will be set to 255
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="destination"></param>
+        /// <param name="bitmapDataSource"></param>
+        /// <param name="bitmapDataDestination"></param>
+        internal static unsafe void ProcessWeakAndStrongEdges(
+            Bitmap source,
+            Bitmap destination,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination
+        )
         {
             //  DESCRIPTION
             //
@@ -327,9 +499,8 @@ namespace Core.Processors
             int height = source.Height - 2;
             int width = source.Width - 2;
             int stride = bitmapDataSource.Stride;
-            int pixFormat = stride / bitmapDataSource.Width;
-            byte* ptrSrc0 = (byte*)(bitmapDataSource.Scan0 + stride + pixFormat);
-            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + pixFormat);
+            byte* ptrSrc0 = (byte*)(bitmapDataSource.Scan0 + stride + 1);
+            byte* ptrDest0 = (byte*)(bitmapDataDestination.Scan0 + stride + 1);
 
             // process the image parallel
             Parallel.For(fromInclusive: 0, toExclusive: height, body: (row) =>
@@ -337,8 +508,8 @@ namespace Core.Processors
                 for (int col = 0; col < width; col++)
                 {
                     // pointer to current pixels
-                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col * pixFormat);
-                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col * pixFormat);
+                    byte* ptrSrc = (byte*)(ptrSrc0 + row * stride + col);
+                    byte* ptrDest = (byte*)(ptrDest0 + row * stride + col);
 
                     // get the current value
                     byte currentValue = ptrSrc[0];
@@ -356,7 +527,7 @@ namespace Core.Processors
                             for (int wCol = -1; wCol <= 1; wCol++)
                             {
                                 // if at least 1 strong pixel
-                                if (ptrSrc[wRow * stride + wCol * pixFormat] == 255)
+                                if (ptrSrc[wRow * stride + wCol] == 255)
                                 {
                                     currentValue = 255;
                                 }
@@ -372,55 +543,60 @@ namespace Core.Processors
                     }
 
                     // set the destination pixel value based on the checked and corrected value
-                    for (int channel = 0; channel < 3; channel++)
-                    {
-                        ptrDest[channel] = currentValue;
-                    }
+                    ptrDest[0] = currentValue;
                 }
             });
         }
-        internal static unsafe void SetFrameToZero(Bitmap image, BitmapData bitmapDataImage)
+
+        internal static unsafe void SetFrameToZero(
+            Bitmap image,
+            BitmapData bitmapDataImage,
+            int frameDepth = 2
+        )
         {
             // get info locally for faster access
             int height = image.Height;
             int width = image.Width;
             int stride = bitmapDataImage.Stride;
-            int pixFormat = stride / bitmapDataImage.Width;
             byte* ptrImg0 = (byte*)bitmapDataImage.Scan0;
-            long imageLength = height * stride - pixFormat;
-
-            // top and bottom rows
-            for (int col = 0; col < width; col++)
+            long imageLength = height * stride - 1;
+            for (int depth = 0; depth < frameDepth; depth++)
             {
-                for (int channel = 0; channel < 3; channel++)
+                // top and bottom rows
+                for (int col = 0; col < width; col++)
                 {
                     // upper row
-                    ptrImg0[col * pixFormat + channel] = 0;
+                    ptrImg0[depth * stride + col] = 0;
 
                     // bottom row
-                    ptrImg0[imageLength - (col * pixFormat) + channel] = 0;
+                    ptrImg0[imageLength - (depth * stride + col)] = 0;
                 }
-            }
 
-            // left and right cols
-            for (int row = 0; row < height; row++)
-            {
-                for (int channel = 0; channel < 3; channel++)
+                // left and right cols
+                for (int row = 0; row < height; row++)
                 {
                     // left col
-                    ptrImg0[row * stride + channel] = 0;
+                    ptrImg0[row * stride + depth] = 0;
 
                     // right col
-                    ptrImg0[imageLength - (row * stride) + channel - pixFormat] = 0;
-                    ptrImg0[imageLength - (row * stride) + channel] = 0;
+                    // ptrImg0[imageLength - (row * stride + depth) - 1] = 0;
+                    ptrImg0[imageLength - (row * stride + depth)] = 0;
                 }
             }
-
         }
-        internal static void UnlockBitmaps(Bitmap destination, Bitmap buffer, BitmapData bitmapDataDestination, BitmapData bitmapDataBuffer)
+
+        internal static void UnlockBitmaps(
+            Bitmap source,
+            Bitmap destination,
+            Bitmap buffer,
+            BitmapData bitmapDataSource,
+            BitmapData bitmapDataDestination,
+            BitmapData bitmapDataBuffer
+        )
         {
+            source.UnlockBits(bitmapDataSource);
             destination.UnlockBits(bitmapDataDestination);
-            buffer.UnlockBits(bitmapDataDestination);
+            buffer.UnlockBits(bitmapDataBuffer);
         }
     }
 }

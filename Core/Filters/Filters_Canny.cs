@@ -17,7 +17,7 @@ namespace Core
         /// Apply canny edge detection on the image and save the result into the destination image
         /// </summary>
         /// <param name="source">RGB 8 bit depth bitmap image</param>
-        /// <param name="destination">8 bit depth binary image (3 channel) with 2 value: 0 - background, 255 - foreground / edge</param>
+        /// <param name="destination">8 bit depth, 1 channel, binary image with 2 value: 0 - background, 255 - foreground / edge</param>
         public static void ApplyCanny(Bitmap source, ref Bitmap destination)
         {
             // STEPS
@@ -28,33 +28,39 @@ namespace Core
             // 5. double threshold on edges -> hysteresis bandwidth (25, 255)
             // 6. convolve weak and strong edges with window and glue strong edges together
 
-            // 0. Check image sources
+            // 0.1 Check image sources
             CannyProcessor.NullCheckImages(
                 source: source,
                 destination: ref destination
             );
 
-            // 1. convert to gray image
-            Filters.ConvertToGray(
+            // 0.2 Create buffer for latter calculations
+            Bitmap buffer = new Bitmap(destination.Width, destination.Height, PixelFormat.Format8bppIndexed);
+
+            // 0.3 Lock the bitmaps
+            CannyProcessor.LockBitmaps(
                 source: source,
-                destination: destination
+                destination: destination,
+                buffer: buffer,
+                out BitmapData bitmapDataSource,
+                out BitmapData bitmapDataDestination,
+                out BitmapData bitmapDataBuffer
             );
 
-            // create buffer for latter calculations
-            Bitmap buffer = new Bitmap(destination.Width, destination.Height, destination.PixelFormat);
+            // 1. convert to gray image
+            CannyProcessor.ConvertToGray(
+                source: source,
+                destination: destination,
+                bitmapDataSource: bitmapDataSource,
+                bitmapDataDestination: bitmapDataDestination
+            );
 
             // 2. apply gauss filter
             CannyProcessor.GaussBlur(
                 source: destination,
-                destination: buffer
-            );
-
-            // lock the bitmaps
-            CannyProcessor.LockBitmaps(
-                destination: destination,
-                buffer: buffer,
-                out BitmapData bitmapDataDestination,
-                out BitmapData bitmapDataBuffer
+                destination: buffer,
+                bitmapDataSource: bitmapDataDestination,
+                bitmapDataDestination: bitmapDataBuffer
             );
 
             // 3. apply sobel x and y filter and save edge direction into gradient direct map
@@ -88,7 +94,8 @@ namespace Core
             // set the frame to value 0
             CannyProcessor.SetFrameToZero(
                 image: destination,
-                bitmapDataImage: bitmapDataDestination
+                bitmapDataImage: bitmapDataDestination,
+                frameDepth: 4
             );
 
             // 4. Non maximums suppression in norm direction
@@ -120,7 +127,14 @@ namespace Core
             );
 
             // Unlock bitmaps
-            CannyProcessor.UnlockBitmaps(destination: destination, buffer: buffer, bitmapDataDestination: bitmapDataDestination, bitmapDataBuffer: bitmapDataBuffer);
+            CannyProcessor.UnlockBitmaps(
+                source: source,
+                destination: destination, 
+                buffer: buffer, 
+                bitmapDataSource: bitmapDataSource,
+                bitmapDataDestination: bitmapDataDestination, 
+                bitmapDataBuffer: bitmapDataBuffer
+            );
         }
     }
 }
