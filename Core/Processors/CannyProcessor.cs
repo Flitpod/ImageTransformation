@@ -313,6 +313,43 @@ namespace Core.Processors
             gradientMaxValue = localMaximums.Max();
         }
 
+        internal static unsafe void SetFrameToZero(
+            Bitmap image,
+            BitmapData bitmapDataImage,
+            int frameDepth = 2
+        )
+        {
+            // get info locally for faster access
+            int height = image.Height;
+            int width = image.Width;
+            int stride = bitmapDataImage.Stride;
+            byte* ptrImg0 = (byte*)bitmapDataImage.Scan0;
+            long imageLength = height * stride - 1;
+            for (int depth = 0; depth < frameDepth; depth++)
+            {
+                // top and bottom rows
+                for (int col = 0; col < width; col++)
+                {
+                    // upper row
+                    ptrImg0[depth * stride + col] = 0;
+
+                    // bottom row
+                    ptrImg0[imageLength - (depth * stride + col)] = 0;
+                }
+
+                // left and right cols
+                for (int row = 0; row < height; row++)
+                {
+                    // left col
+                    ptrImg0[row * stride + depth] = 0;
+
+                    // right col
+                    // ptrImg0[imageLength - (row * stride + depth) - 1] = 0;
+                    ptrImg0[imageLength - (row * stride + depth)] = 0;
+                }
+            }
+        }
+
         internal static unsafe void SuppressNonMaximums(
             Bitmap source,
             Bitmap destination,
@@ -546,43 +583,6 @@ namespace Core.Processors
                     ptrDest[0] = currentValue;
                 }
             });
-        }
-
-        internal static unsafe void SetFrameToZero(
-            Bitmap image,
-            BitmapData bitmapDataImage,
-            int frameDepth = 2
-        )
-        {
-            // get info locally for faster access
-            int height = image.Height;
-            int width = image.Width;
-            int stride = bitmapDataImage.Stride;
-            byte* ptrImg0 = (byte*)bitmapDataImage.Scan0;
-            long imageLength = height * stride - 1;
-            for (int depth = 0; depth < frameDepth; depth++)
-            {
-                // top and bottom rows
-                for (int col = 0; col < width; col++)
-                {
-                    // upper row
-                    ptrImg0[depth * stride + col] = 0;
-
-                    // bottom row
-                    ptrImg0[imageLength - (depth * stride + col)] = 0;
-                }
-
-                // left and right cols
-                for (int row = 0; row < height; row++)
-                {
-                    // left col
-                    ptrImg0[row * stride + depth] = 0;
-
-                    // right col
-                    // ptrImg0[imageLength - (row * stride + depth) - 1] = 0;
-                    ptrImg0[imageLength - (row * stride + depth)] = 0;
-                }
-            }
         }
 
         internal static void UnlockBitmaps(

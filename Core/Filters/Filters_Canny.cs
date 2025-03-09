@@ -91,6 +91,7 @@ namespace Core
                 gradientMaxValue: out int gradientMaxValue
             );
 
+            
             // set the frame to value 0
             CannyProcessor.SetFrameToZero(
                 image: destination,
@@ -114,7 +115,7 @@ namespace Core
                 bitmapDataSource: bitmapDataBuffer,
                 bitmapDataDestination: bitmapDataBuffer,
                 gradientMaxValue: gradientMaxValue,
-                thresholdLowRatio: 0.25,
+                thresholdLowRatio: 0.7,
                 thresholdHighRatio: 0.9
             );
 
