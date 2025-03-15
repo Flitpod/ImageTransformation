@@ -115,8 +115,8 @@ namespace Core
                 bitmapDataSource: bitmapDataBuffer,
                 bitmapDataDestination: bitmapDataBuffer,
                 gradientMaxValue: gradientMaxValue,
-                thresholdLowRatio: 0.7,
-                thresholdHighRatio: 0.9
+                thresholdLowRatio: 0.25,
+                thresholdHighRatio: 0.75
             );
 
             // 6. convolve weak and strong edges with window and glue strong edges together
