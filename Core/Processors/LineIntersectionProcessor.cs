@@ -26,7 +26,7 @@ namespace Core.Processors
             // iterate trough the all combination of lines and calulate the intersections
             for (int i = 0; i < linesArray.Length - 1; i++)
             {
-                for (int j = 0; j < linesArray.Length; j++)
+                for (int j = i + 1; j < linesArray.Length; j++)
                 {
                     if (GetIntersection(linesArray[i], linesArray[j], out Point intersectionPoint))
                     {
@@ -46,7 +46,7 @@ namespace Core.Processors
         /// <param name="line1"></param>
         /// <param name="line2"></param>
         /// <returns>True if the intersection exists, false if no intersection.</returns>
-        private static bool GetIntersection(LinePolar line1, LinePolar line2, out Point intersectionPoint)
+        public static bool GetIntersection(LinePolar line1, LinePolar line2, out Point intersectionPoint)
         {
             // caluclate the intersection in a try block
             try
@@ -61,8 +61,28 @@ namespace Core.Processors
                 //  y = -----------  - x * -----------
                 //      sin(theta1)        sin(theta1)
                 //
-                int x = (int)((line2.Radius * Math.Sin(line1.Theta) - line1.Radius * Math.Sin(line2.Theta)) / Math.Sin(line1.Theta - line2.Theta));
-                int y = (int)((line1.Radius / Math.Sin(line1.Theta)) - (x * (Math.Cos(line1.Theta) / Math.Sin(line1.Theta))));
+
+                // calculate denominators
+                double denominatorX = Math.Sin(line1.Theta - line2.Theta);
+                double denominatorY = Math.Sin(line1.Theta);
+
+                // check if non of the denominators have the value 0
+                if (denominatorX == 0 || denominatorY == 0)
+                {
+                    throw new DivideByZeroException();
+                }
+
+                // caluclate the coordinates
+                double xFloating = ((line2.Radius * Math.Sin(line1.Theta) - line1.Radius * Math.Sin(line2.Theta)) / denominatorX);
+                double yFloating = (line1.Radius / denominatorY) - (xFloating * (Math.Cos(line1.Theta) / denominatorY));
+
+                // for rounding check the sign
+                int signX = Math.Sign(xFloating);
+                int signY = Math.Sign(yFloating);
+
+                // round the calculated values based-on the corresponding sign
+                int x = (int)(xFloating + signX * 0.5);
+                int y = (int)(yFloating + signY * 0.5);
 
                 // return the calculated point
                 intersectionPoint = new Point(x: x, y: y);
@@ -71,7 +91,7 @@ namespace Core.Processors
             catch (Exception) { }
 
             // set default value for the point
-            intersectionPoint = new Point();
+            intersectionPoint = new Point(x: 0, y: 0);
             return false;
         }
     }
