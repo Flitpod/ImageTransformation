@@ -8,6 +8,9 @@ using System.Windows.Shapes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using Core.Detection;
+using Point = System.Windows.Point;
+using System.Drawing;
 
 namespace App_wpf.TransformationControls
 {
@@ -31,22 +34,25 @@ namespace App_wpf.TransformationControls
     public class ProjectiveTransformationControls : TransformationControls, IDisposable
     {
         private readonly Canvas _canvas;
-        private readonly Image _image;
+        private readonly System.Windows.Controls.Image _image;
+        private System.Drawing.Bitmap _bitmapSource;
         private TextBlock _textBlock_MousePosition;
         private readonly List<WrapPoint> _points_relative;
         private WrapPoint _dragged_point;
         private bool _isDragging;
         private bool _pointSelected;
         public Button ExecuteBtn { get; private set; }
+        private Button _detectCornerButton;
 
         // Constants
-        private const double POINT_SELECTION_THRESHOLD = 10.0 / 400.0;
-        private const double ELLIPSE_SIZE = 4.0;
+        private const double _POINT_SELECTION_THRESHOLD = 10.0 / 400.0;
+        private const double _ELLIPSE_SIZE = 4.0;
 
-        public ProjectiveTransformationControls(Canvas canvas, Image image)
+        public ProjectiveTransformationControls(Canvas canvas, System.Windows.Controls.Image image, System.Drawing.Bitmap bitmapSource)
         {
             _canvas = canvas ?? throw new ArgumentNullException(nameof(canvas));
             _image = image ?? throw new ArgumentNullException(nameof(image));
+            _bitmapSource = bitmapSource ?? throw new ArgumentNullException(nameof(bitmapSource));
             _points_relative = InitializePoints();
             
             CreateLayout();
@@ -76,6 +82,7 @@ namespace App_wpf.TransformationControls
             Grid mainGrid = new Grid();
             mainGrid.MaxHeight = 25;
             mainGrid.Height = 25;
+            mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
             mainGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
@@ -113,14 +120,25 @@ namespace App_wpf.TransformationControls
             mainGrid.Children.Add(executeButton);
             this.ExecuteBtn = executeButton;
 
+            // create detect corners button
+            Button detectCornerButton = new Button();
+            detectCornerButton.Content = "Detect Corners";
+            Grid.SetColumn(detectCornerButton, 3);
+            detectCornerButton.HorizontalAlignment = HorizontalAlignment.Center;
+            detectCornerButton.VerticalAlignment = VerticalAlignment.Center;
+            mainGrid.Children.Add(detectCornerButton);
+            detectCornerButton.Click += DetectCornerButton_Click;
+            this._detectCornerButton = detectCornerButton;
+
             // create close button
             Button closeButton = new Button();
             closeButton.Content = "Close";
             closeButton.Margin = new Thickness(0, 0, 2, 0);
-            Grid.SetColumn(closeButton, 4);
+            Grid.SetColumn(closeButton, 5);
             mainGrid.Children.Add(closeButton);
             this.CloseBtn = closeButton;
         }
+
 
         // event handlers
         private void Handler_MouseDown(object sender, MouseEventArgs mouseEventArgs)
@@ -155,6 +173,70 @@ namespace App_wpf.TransformationControls
         }
         private void Handler_SizeChanged(object sender, SizeChangedEventArgs e)
         {
+            DrawWeb();
+        }
+        private void DetectCornerButton_Click(object sender, RoutedEventArgs e)
+        {
+            // find corners on the source image
+            bool cornersFound = QuadrangleDetector.FindCorners(
+                source: this._bitmapSource,
+                corners: out IEnumerable<System.Drawing.Point> rawCorners
+            );
+
+            // check if there are 4 found corner points
+            if (!cornersFound)
+            {
+                MessageBox.Show(
+                    messageBoxText: "No detected quadrengle!",
+                    caption: "Warning!",
+                    button: MessageBoxButton.OK,
+                    icon: MessageBoxImage.Warning
+                );
+                return;
+            }
+
+            // bitmap image sizes for normalization
+            int height = this._bitmapSource.Height;
+            int width = this._bitmapSource.Width;
+
+            // find the matching points (topleft, topright, bottomright, bottomleft)
+            var cornersQuadrangle = rawCorners
+                .Select(p => new Point(x: p.X, y: p.Y))
+                .Select(p => GetNormalizedPosition(point: p, width: width, height: height));
+            var cornersImage = new Point[]
+            {
+                new Point(x: 0, y: 0),
+                new Point(x: 1, y: 0),
+                new Point(x: 1, y: 1),
+                new Point(x: 0, y: 1),
+            };
+
+            // calculate the min distances from the image corner points and save in the the given order
+            this._points_relative.Clear();
+            this._pointSelected = false;
+            this._dragged_point = null;
+
+            foreach (var imageCornerPoint in cornersImage)
+            {
+                Dictionary<double, Point> distancesForPoints = new Dictionary<double, Point>();
+                foreach (var quadrangleCornerPoint in cornersQuadrangle)
+                {
+                    // build up the map of distances relative to the current image corner point
+                    distancesForPoints.Add(
+                        key: GetDistance(p1: imageCornerPoint, p2: quadrangleCornerPoint),
+                        value: quadrangleCornerPoint
+                    );
+                }
+
+                // find the minimum distance
+                double minDistance = distancesForPoints.Keys.Min();
+
+                // add the found matching point to the points_relative collection
+                WrapPoint matchingPoint = new WrapPoint(distancesForPoints[minDistance]);
+                this._points_relative.Add(matchingPoint);
+            }
+
+            // redraw the web
             DrawWeb();
         }
 
@@ -255,6 +337,10 @@ namespace App_wpf.TransformationControls
         {
             return new Point(x: point.X / _image.ActualWidth, y: point.Y / _image.ActualHeight);
         }
+        private Point GetNormalizedPosition(Point point, double width, double height)
+        {
+            return new Point(x: point.X / width, y: point.Y / height);
+        }
         private double GetDistance(Point p1, Point p2)
         {
             return Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
@@ -269,7 +355,7 @@ namespace App_wpf.TransformationControls
             Point normalizedCursorPosition = GetNormalizedPosition(cursorPos);
 
             _dragged_point = _points_relative.FirstOrDefault(point => 
-                GetDistance(point.GetPoint(), normalizedCursorPosition) <= POINT_SELECTION_THRESHOLD);
+                GetDistance(point.GetPoint(), normalizedCursorPosition) <= _POINT_SELECTION_THRESHOLD);
 
             if (_dragged_point != null)
             {
@@ -303,7 +389,7 @@ namespace App_wpf.TransformationControls
             var polygon = new Polygon
             {
                 StrokeThickness = 1.5,
-                Stroke = Brushes.Red
+                Stroke = System.Windows.Media.Brushes.Red
             };
             Canvas.SetLeft(polygon, offsetW);
             Canvas.SetTop(polygon, offsetH);
@@ -314,13 +400,13 @@ namespace App_wpf.TransformationControls
         {
             var ellipse = new Ellipse
             {
-                Fill = Brushes.Red,
-                Width = 2 * ELLIPSE_SIZE,
-                Height = 2 * ELLIPSE_SIZE
+                Fill = System.Windows.Media.Brushes.Red,
+                Width = 2 * _ELLIPSE_SIZE,
+                Height = 2 * _ELLIPSE_SIZE
             };
 
-            Canvas.SetLeft(ellipse, offsetW + col - ELLIPSE_SIZE);
-            Canvas.SetTop(ellipse, offsetH + row - ELLIPSE_SIZE);
+            Canvas.SetLeft(ellipse, offsetW + col - _ELLIPSE_SIZE);
+            Canvas.SetTop(ellipse, offsetH + row - _ELLIPSE_SIZE);
             _canvas.Children.Add(ellipse);
         }
 
