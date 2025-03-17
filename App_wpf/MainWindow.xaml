@@ -45,6 +45,8 @@
                 <!-- Filter menu -->
                 <MenuItem Header="_Filter" Height="20" VerticalAlignment="Center">
                     <MenuItem Header="_Canny" Click="click_FilterCanny" />
+                    <MenuItem Header="Top4Lines" Click="click_Top4Lines" />
+                    <MenuItem Header="HoughLines" Click="click_HoughLines" />
                 </MenuItem>
             </Menu>
             <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />

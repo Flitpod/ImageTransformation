@@ -1,6 +1,7 @@
 ﻿using App_wpf;
 using App_wpf.TransformationControls;
 using Core;
+using Core.Detection;
 using ImageTransformation.Core;
 using Microsoft.Win32;
 using System.Drawing;
@@ -137,7 +138,7 @@ namespace ImageTransformation.App
             if (IsToolbarControlOpen() || this.imageSource.Source == null) return;
 
             // create control elements for the control grid
-            ProjectiveTransformationControls projTransfControls = new ProjectiveTransformationControls(this.canvasSource, this.imageSource);
+            ProjectiveTransformationControls projTransfControls = new ProjectiveTransformationControls(this.canvasSource, this.imageSource, this.bitmapSrc);
 
             // event handler for controls close button click
             projTransfControls.CloseBtn.Click += (s, e) =>
@@ -179,6 +180,36 @@ namespace ImageTransformation.App
                 return;
             }
             Filters.ApplyCanny(source: bitmapSrc, destination: ref bitmapDst);
+            RefreshImages();
+        }
+
+        private void click_Top4Lines(object sender, RoutedEventArgs e)
+        {
+            if (imageSource.Source == null)
+            {
+                return;
+            }
+            var top4lines = HoughLine.FindTopNLine(source: bitmapSrc, numberOfTopLines: 4);
+            StringBuilder infos = new StringBuilder();
+            infos.AppendLine("Top 4 lines: ");
+            foreach (var line in top4lines)
+            {
+                infos.AppendLine($" - (radius: {line.Radius}px, theta: {Math.Round((line.Theta / Math.PI) * 180, 3)}degree)");
+            }
+            MessageBox.Show(
+                messageBoxText: infos.ToString(),
+                caption: "Top4DetectedLines",
+                button: MessageBoxButton.OK
+            );
+        }
+
+        private void click_HoughLines(object sender, RoutedEventArgs e)
+        {
+            if (imageSource.Source == null)
+            {
+                return;
+            }
+            HoughLine.ViewVotes(source: bitmapSrc, destination: ref bitmapDst);
             RefreshImages();
         }
 
@@ -238,6 +269,5 @@ namespace ImageTransformation.App
         {
             return transformationControls != null;
         }
-
     }
 }
