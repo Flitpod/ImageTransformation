@@ -47,6 +47,7 @@
                     <MenuItem Header="_Canny" Click="click_FilterCanny" />
                     <MenuItem Header="Top4Lines" Click="click_Top4Lines" />
                     <MenuItem Header="HoughLines" Click="click_HoughLines" />
+                    <MenuItem Header="RGB2ChromaGray" Click="click_RGB2ChromaGray" />
                 </MenuItem>
             </Menu>
             <Label x:Name="label_MetaData" Grid.Column="2" HorizontalAlignment="Left" VerticalContentAlignment="Top" />

@@ -203,6 +203,16 @@ namespace ImageTransformation.App
             );
         }
 
+        private void click_RGB2ChromaGray(object sender, RoutedEventArgs e)
+        {
+            if (imageSource.Source == null)
+            {
+                return;
+            }
+            Filters.ConvertToMaxCrCbGray(source: bitmapSrc, destination: ref bitmapDst);
+            RefreshImages();
+        }
+
         private void click_HoughLines(object sender, RoutedEventArgs e)
         {
             if (imageSource.Source == null)
