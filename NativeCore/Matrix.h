@@ -20,10 +20,6 @@ namespace NativeCore {
 		// methods
 		void ThrowIfIndexOutOfRange(int row, int col) const;
 		bool CanMultiply(const Matrix& right) const;
-		
-		// TODO: implementation
-		Matrix GetAdjointMatrix() const;
-		Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
 
 	public:
 		// --- ctors ---
@@ -47,10 +43,13 @@ namespace NativeCore {
 		// -- Matrix multiplication
 		Matrix operator*(const Matrix& right) const;
 
-		// TODO: implementation!
-		Matrix GetInverse() const;
-		double GetDeterminant() const;
+		static int CheckRowChangeReturnSign(Matrix& matrix, int row, int col);
 		Matrix GetTranspose() const;
-		Matrix GetReducedEchelonForm(int& singForDeterminant) const;
+		// TODO: implementation + unit tests
+		// Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
+		// Matrix GetReducedEchelonForm(int& singForDeterminant) const;
+		// double GetDeterminant() const;
+		// Matrix GetAdjointMatrix() const;
+		// Matrix GetInverse() const;
 	};
 }

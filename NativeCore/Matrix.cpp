@@ -8,17 +8,6 @@ Static sized matrix class
 
 namespace NativeCore {
 
-	// methods
-	void Matrix::ThrowIfIndexOutOfRange(int row, int col) const {
-		if (row >= m_Rows || col >= m_Cols) {
-			throw std::overflow_error("Index out of the range!");
-		}
-	}
-
-	bool Matrix::CanMultiply(const Matrix& right) const {
-		return m_Cols == right.GetRows();
-	}
-
 	// ctors
 	Matrix::Matrix()
 		: m_Rows(0), m_Cols(0) {
@@ -93,24 +82,39 @@ namespace NativeCore {
 		return result;
 	}
 
-	// --- TODO - Add implementation ---
-	Matrix Matrix::GetAdjointMatrix() const {
-		// TODO: implementation - private
+	// methods
+	void Matrix::ThrowIfIndexOutOfRange(int row, int col) const {
+		if (row >= m_Rows || col >= m_Cols) {
+			throw std::overflow_error("Index out of the range!");
+		}
 	}
 
-	Matrix Matrix::GetSubMatrixWithoutRowAndCol(int row, int col) const {
-		// TODO: implementation - private
+	bool Matrix::CanMultiply(const Matrix& right) const {
+		return m_Cols == right.GetRows();
 	}
 
-	Matrix Matrix::GetInverse() const {
-		// TODO: implementation - public
+	int Matrix::CheckRowChangeReturnSign(Matrix& matrix, int row, int col) {
+		if (matrix(row, col) == 0)
+		{
+			int rowToSwapIdx = row + 1;
+			while (rowToSwapIdx < matrix.GetRows() && matrix(rowToSwapIdx, col) == 0)
+			{
+				rowToSwapIdx++;
+			}
+			if (rowToSwapIdx < matrix.GetRows())
+			{
+				for (; col < matrix.GetCols(); col++)
+				{
+					double temp = matrix(row, col);
+					matrix(row, col) = matrix(rowToSwapIdx, col);
+					matrix(rowToSwapIdx, col) = temp;
+				}
+			}
+			return -1;
+		}
+		return 1;
 	}
 
-	double Matrix::GetDeterminant() const {
-		// TODO: implementation - public
-	}
-
-	// TODO: Add unit tests
 	Matrix Matrix::GetTranspose() const {
 		Matrix result(m_Cols, m_Rows);
 		for (int row = 0; row < m_Rows; row++) {
@@ -121,7 +125,25 @@ namespace NativeCore {
 		return result;
 	}
 
-	Matrix Matrix::GetReducedEchelonForm(int& singForDeterminant) const {
-		// TODO: implementation - public
-	}
+	// --- TODO - Add implementation ---
+	
+	//Matrix Matrix::GetSubMatrixWithoutRowAndCol(int row, int col) const {
+	//	// TODO: implementation - public
+	//}
+	
+	//Matrix Matrix::GetReducedEchelonForm(int& singForDeterminant) const {
+	//	// TODO: implementation - public
+	//}
+	
+	//double Matrix::GetDeterminant() const {
+	//	// TODO: implementation - public
+	//}
+	
+	//Matrix Matrix::GetAdjointMatrix() const {
+	//	// TODO: implementation - public
+	//}
+
+	//Matrix Matrix::GetInverse() const {
+	//	// TODO: implementation - public
+	//}
 }
