@@ -17,6 +17,9 @@
     <ClCompile Include="GetSubMatrixWithoutRowAndColTests.cpp">
       <Filter>MatrixTests</Filter>
     </ClCompile>
+    <ClCompile Include="GetReducedEchelonFormTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

@@ -46,8 +46,8 @@ namespace NativeCore {
 		static int CheckRowChangeReturnSign(Matrix& matrix, int row, int col);
 		Matrix GetTranspose() const;
 		Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
+		Matrix GetReducedEchelonForm(int& singForDeterminant) const;
 		// TODO: implementation + unit tests
-		// Matrix GetReducedEchelonForm(int& singForDeterminant) const;
 		// double GetDeterminant() const;
 		// Matrix GetAdjointMatrix() const;
 		// Matrix GetInverse() const;

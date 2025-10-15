@@ -124,21 +124,17 @@ namespace NativeCore {
 		}
 		return result;
 	}
-	
+
 	Matrix Matrix::GetSubMatrixWithoutRowAndCol(int row, int col) const {
 		Matrix result(m_Rows - 1, m_Cols - 1);
 		int rRow = 0;
-		for (int i = 0; i < m_Rows; i++)
-		{
-			if (i == row)
-			{
+		for (int i = 0; i < m_Rows; i++) {
+			if (i == row) {
 				continue;
 			}
 			int rCol = 0;
-			for (int j = 0; j < m_Cols; j++)
-			{
-				if (j == col)
-				{
+			for (int j = 0; j < m_Cols; j++) {
+				if (j == col) {
 					continue;
 				}
 				result(rRow, rCol) = (*this)(i, j);
@@ -148,16 +144,33 @@ namespace NativeCore {
 		}
 		return result;
 	}
-	
+
+	Matrix Matrix::GetReducedEchelonForm(int& signForDeterminant) const {
+		if (m_Rows != m_Cols) {
+			throw std::length_error("Matrix is not n x n sized!");
+		}
+		Matrix result(*this);
+		signForDeterminant = 1;
+		for (int k = 1; k < m_Rows; k++) {
+			for (int i = k; i < m_Rows; i++) {
+				signForDeterminant *= Matrix::CheckRowChangeReturnSign(result, k - 1, k - 1);
+				double mul = -1 * (result(i, k - 1) / result(k - 1, k - 1));
+				if (std::_Is_nan(mul)) {
+					mul = 1;
+				}
+				for (int j = k - 1; j < m_Cols; j++) {
+					result(i, j) = result(i, j) + (mul * result(k - 1, j));
+				}
+			}
+		}
+		return result;
+	}
+
 	// --- TODO - Add implementation ---
-	//Matrix Matrix::GetReducedEchelonForm(int& singForDeterminant) const {
-	//	// TODO: implementation - public
-	//}
-	
 	//double Matrix::GetDeterminant() const {
 	//	// TODO: implementation - public
 	//}
-	
+
 	//Matrix Matrix::GetAdjointMatrix() const {
 	//	// TODO: implementation - public
 	//}
