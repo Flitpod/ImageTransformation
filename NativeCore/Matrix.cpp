@@ -124,13 +124,32 @@ namespace NativeCore {
 		}
 		return result;
 	}
-
+	
+	Matrix Matrix::GetSubMatrixWithoutRowAndCol(int row, int col) const {
+		Matrix result(m_Rows - 1, m_Cols - 1);
+		int rRow = 0;
+		for (int i = 0; i < m_Rows; i++)
+		{
+			if (i == row)
+			{
+				continue;
+			}
+			int rCol = 0;
+			for (int j = 0; j < m_Cols; j++)
+			{
+				if (j == col)
+				{
+					continue;
+				}
+				result(rRow, rCol) = (*this)(i, j);
+				rCol++;
+			}
+			rRow++;
+		}
+		return result;
+	}
+	
 	// --- TODO - Add implementation ---
-	
-	//Matrix Matrix::GetSubMatrixWithoutRowAndCol(int row, int col) const {
-	//	// TODO: implementation - public
-	//}
-	
 	//Matrix Matrix::GetReducedEchelonForm(int& singForDeterminant) const {
 	//	// TODO: implementation - public
 	//}

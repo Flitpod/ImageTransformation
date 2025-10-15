@@ -14,6 +14,9 @@
     <ClCompile Include="CheckRowChangeReturnSignTests.cpp">
       <Filter>MatrixTests</Filter>
     </ClCompile>
+    <ClCompile Include="GetSubMatrixWithoutRowAndColTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
