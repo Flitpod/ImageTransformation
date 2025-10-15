@@ -177,11 +177,17 @@ namespace NativeCore {
 		return result * sign;
 	}
 
-	// --- TODO - Add implementation ---
-	//Matrix Matrix::GetAdjointMatrix() const {
-	//	// TODO: implementation - public
-	//}
+	Matrix Matrix::GetAdjointMatrix() const {
+		Matrix result(m_Rows, m_Cols);
+		for (int i = 0; i < m_Rows; i++) {
+			for (int j = 0; j < m_Cols; j++) {
+				result(i, j) = pow(-1, i + j) * GetSubMatrixWithoutRowAndCol(i, j).GetDeterminant();
+			}
+		}
+		return result.GetTranspose();
+	}
 
+	// --- TODO - Add implementation ---
 	//Matrix Matrix::GetInverse() const {
 	//	// TODO: implementation - public
 	//}

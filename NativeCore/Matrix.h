@@ -48,8 +48,8 @@ namespace NativeCore {
 		Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
 		Matrix GetReducedEchelonForm(int& singForDeterminant) const;
 		double GetDeterminant() const;
+		Matrix GetAdjointMatrix() const;
 		// TODO: implementation + unit tests
-		// Matrix GetAdjointMatrix() const;
 		// Matrix GetInverse() const;
 	};
 }
