@@ -43,13 +43,13 @@ namespace NativeCore {
 		// -- Matrix multiplication
 		Matrix operator*(const Matrix& right) const;
 
+		// --- Functionality methods ---
 		static int CheckRowChangeReturnSign(Matrix& matrix, int row, int col);
 		Matrix GetTranspose() const;
 		Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
 		Matrix GetReducedEchelonForm(int& singForDeterminant) const;
 		double GetDeterminant() const;
 		Matrix GetAdjointMatrix() const;
-		// TODO: implementation + unit tests
-		// Matrix GetInverse() const;
+		Matrix GetInverse() const;
 	};
 }

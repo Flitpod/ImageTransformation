@@ -103,6 +103,7 @@
     <ClCompile Include="CheckRowChangeReturnSignTests.cpp" />
     <ClCompile Include="GetAdjointMatrixTests.cpp" />
     <ClCompile Include="GetDeterminantTests.cpp" />
+    <ClCompile Include="GetInverseTests.cpp" />
     <ClCompile Include="GetReducedEchelonFormTests.cpp" />
     <ClCompile Include="GetSubMatrixWithoutRowAndColTests.cpp" />
     <ClCompile Include="MatrixTests.cpp" />

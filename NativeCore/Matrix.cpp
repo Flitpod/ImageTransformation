@@ -82,7 +82,7 @@ namespace NativeCore {
 		return result;
 	}
 
-	// methods
+	// --- Functionality methods ---
 	void Matrix::ThrowIfIndexOutOfRange(int row, int col) const {
 		if (row >= m_Rows || col >= m_Cols) {
 			throw std::overflow_error("Index out of the range!");
@@ -187,8 +187,11 @@ namespace NativeCore {
 		return result.GetTranspose();
 	}
 
-	// --- TODO - Add implementation ---
-	//Matrix Matrix::GetInverse() const {
-	//	// TODO: implementation - public
-	//}
+	Matrix Matrix::GetInverse() const {
+		double determinant = GetDeterminant();
+		if (determinant == 0) {
+			throw std::logic_error("Matrix has no inverse.");
+		}
+		return GetAdjointMatrix() * (1 / determinant);
+	}
 }
