@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="MultiplicationTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
+    <ClCompile Include="TransposeTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
+    <ClCompile Include="MatrixTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckRowChangeReturnSignTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="MatrixTests.h">
+      <Filter>MatrixTests</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="MatrixTests">
+      <UniqueIdentifier>{b0941447-60e1-4fcf-843f-44436ff44758}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
