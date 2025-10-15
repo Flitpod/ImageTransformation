@@ -20,6 +20,9 @@
     <ClCompile Include="GetReducedEchelonFormTests.cpp">
       <Filter>MatrixTests</Filter>
     </ClCompile>
+    <ClCompile Include="GetDeterminantTests.cpp">
+      <Filter>MatrixTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

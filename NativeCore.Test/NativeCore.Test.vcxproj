@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CheckRowChangeReturnSignTests.cpp" />
+    <ClCompile Include="GetDeterminantTests.cpp" />
     <ClCompile Include="GetReducedEchelonFormTests.cpp" />
     <ClCompile Include="GetSubMatrixWithoutRowAndColTests.cpp" />
     <ClCompile Include="MatrixTests.cpp" />

@@ -166,11 +166,18 @@ namespace NativeCore {
 		return result;
 	}
 
-	// --- TODO - Add implementation ---
-	//double Matrix::GetDeterminant() const {
-	//	// TODO: implementation - public
-	//}
+	double Matrix::GetDeterminant() const {
+		int sign;
+		Matrix REF = GetReducedEchelonForm(sign);
+		double result = 1;
+		for (int i = 0; i < m_Rows; i++)
+		{
+			result *= REF(i, i);
+		}
+		return result * sign;
+	}
 
+	// --- TODO - Add implementation ---
 	//Matrix Matrix::GetAdjointMatrix() const {
 	//	// TODO: implementation - public
 	//}
