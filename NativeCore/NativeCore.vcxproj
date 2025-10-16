@@ -110,6 +110,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,10 +138,12 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="dllimpexp.h" />
+    <ClInclude Include="LinearTransformation.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="LinearTransformation.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Matrix.h" />
     <ClCompile Include="pch.cpp">
