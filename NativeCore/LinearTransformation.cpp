@@ -59,10 +59,10 @@ namespace NativeCore {
 
 					// process bilinear interpolation
 					for (int channel = 0; channel < pixelFormat; channel++) {
-						double value = ratio00 * src[0];
-						value += ratio01 * src[pixelFormat];
-						value += ratio10 * src[stride];
-						value += ratio11 * src[stride + pixelFormat];
+						double value = ratio00 * src[channel];
+						value += ratio01 * src[pixelFormat + channel];
+						value += ratio10 * src[stride + channel];
+						value += ratio11 * src[stride + pixelFormat + channel];
 						pixelValues[channel] = (unsigned char)value;
 					}
 				}
