@@ -14,65 +14,76 @@ namespace NativeCore {
 		const int stride
 	) {
 		// Executes the transformation via back propagation from the destination location utilizng the inverse transformation.
-		// 1. Get inverse transformation
+		// 1. Get inverse transformation weights
 		// 2. Iterate over the source image with a parallel outer loop
-		// 3. Create 3D vector out of destination pixel positions to get the back propagated source picel coordinates
+		// 3. Create 3D vector out of destination pixel positions to get the back propagated source pixel coordinates
 		// 4. Process bilinear interpolation from the source pixels
-		// 5. Set destination pixel value(s)
 
-		// 1. Inverse transformation
+		// inverse transformation weights
 		Matrix invTransformation = transformation.GetInverse();
+		const double m00 = invTransformation(0, 0);
+		const double m01 = invTransformation(0, 1);
+		const double m02 = invTransformation(0, 2);
+		const double m10 = invTransformation(1, 0);
+		const double m11 = invTransformation(1, 1);
+		const double m12 = invTransformation(1, 2);
+		const double m20 = invTransformation(2, 0);
+		const double m21 = invTransformation(2, 1);
+		const double m22 = invTransformation(2, 2);
 
-		// 2. Iterate over the image
-		#pragma omp parallel for
+		// iterate over the image
+		#pragma omp parallel for schedule(dynamic, 16)
 		for (int row = 0; row < height; row++) {
+
+			// cache matrix multiplication row values and destination row address
+			const double invRow0 = m00 * row + m02;
+			const double invRow1 = m10 * row + m12;
+			const double invRow2 = m20 * row + m22;
+			unsigned char* dstRow = imgDst + stride * row;
+
 			for (int col = 0; col < width; col++) {
 
-				// 3. calculate source pixel(s) position
-				Matrix dstPixel(3, 1, { (double)row, (double)col, 1 });
-				Matrix srcPixel = invTransformation * dstPixel;
+				// calculate source pixel(s) position
+				const double invWeight = 1 / (invRow2 + m21 * col);
+				double srcRow = (invRow0 + m01 * col) * invWeight;
+				double srcCol = (invRow1 + m11 * col) * invWeight;
+				const int srcRowFloor = int(srcRow);
+				const int srcColFloor = int(srcCol);
 
-				// calculate the back propagated pixel coordinates (scale with the homogenous coordinate)
-				double srcRow = srcPixel(0, 0) / srcPixel(2, 0);
-				double srcCol = srcPixel(1, 0) / srcPixel(2, 0);
-				int srcRowFloor = int(srcRow);
-				int srcColFloor = int(srcCol);
-
-				// set pixel values to default black
-				unsigned char pixelValues[4] = { 0 };
+				// create pointer for the destination pixel
+				unsigned char* dst = (dstRow + pixelFormat * col);
 
 				// check if the back propagated source coordinates are inside the source image
-				if (srcRowFloor >= 0 &&	srcRowFloor < (height - 1) && srcColFloor >= 0 && srcColFloor < (width - 1)) {
+				if (srcRowFloor >= 0 && srcRowFloor < (height - 1) &&
+					srcColFloor >= 0 && srcColFloor < (width - 1)) {
 
 					// 4. bilinear interpolation
 					// create pointer to the source pixel
-					unsigned char* src = (unsigned char*)(imgSrc + stride * srcRowFloor + pixelFormat * srcColFloor);
+					const unsigned char* src = (imgSrc + stride * srcRowFloor + pixelFormat * srcColFloor);
 
 					// calculate interpolation ratios
-					double rowLowerRatio = srcRow - srcRowFloor;
-					double colRightRatio = srcCol - srcColFloor;
+					const double rowLowerRatio = srcRow - srcRowFloor;
+					const double colRightRatio = srcCol - srcColFloor;
 
-					double ratio00 = (1 - rowLowerRatio) * (1 - colRightRatio);
-					double ratio01 = (1 - rowLowerRatio) * colRightRatio;
-					double ratio10 = rowLowerRatio * (1 - colRightRatio);
-					double ratio11 = rowLowerRatio * colRightRatio;
+					const double w00 = (1 - rowLowerRatio) * (1 - colRightRatio);
+					const double w01 = (1 - rowLowerRatio) * colRightRatio;
+					const double w10 = rowLowerRatio * (1 - colRightRatio);
+					const double w11 = rowLowerRatio * colRightRatio;
 
-					// process bilinear interpolation
+					// process bilinear interpolation and set the destination pixel value
 					for (int channel = 0; channel < pixelFormat; channel++) {
-						double value = ratio00 * src[channel];
-						value += ratio01 * src[pixelFormat + channel];
-						value += ratio10 * src[stride + channel];
-						value += ratio11 * src[stride + pixelFormat + channel];
-						pixelValues[channel] = (unsigned char)value;
+						double value = w00 * src[channel];
+						value += w01 * src[pixelFormat + channel];
+						value += w10 * src[stride + channel];
+						value += w11 * src[stride + pixelFormat + channel];
+						dst[channel] = (unsigned char)value;
 					}
 				}
-
-				// create pointer for the destination pixel
-				unsigned char* dst = (unsigned char*)(imgDst + stride * row + pixelFormat * col);
-
-				// 5. Set destination pixel values
-				for (int channel = 0; channel < pixelFormat; channel++) {
-					dst[channel] = pixelValues[channel];
+				else {
+					// set destination pixels to black
+					for (int channel = 0; channel < pixelFormat; channel++) {
+						dst[channel] = 0;
+					}
 				}
 			}
 		}
