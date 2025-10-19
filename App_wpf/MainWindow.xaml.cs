@@ -2,6 +2,7 @@
 using App_wpf.TransformationControls;
 using Core;
 using Core.Detection;
+using Core.LinearTransformations;
 using ImageTransformation.Core;
 using Microsoft.Win32;
 using System.Drawing;
@@ -254,7 +255,7 @@ namespace ImageTransformation.App
         }
 
         // execute transformation
-        private void ExecuteTransformation(Core.Matrix transformation, InterpolationTypes interpolationType = InterpolationTypes.Floating_FromSource)
+        private void ExecuteTransformation(Core.Matrix transformation, InterpolationTypes interpolationType = InterpolationTypes.NativeBilinear)
         {
             try
             {
@@ -264,7 +265,15 @@ namespace ImageTransformation.App
                 }
                 else
                 {
-                    TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation, InterpolationTypes.Floating_FromSource);
+                    if (interpolationType == InterpolationTypes.NativeBilinear)
+                    {
+                        // use native transformation
+                        NativeTransformWrapper.Execute(transformation, bitmapSrc, bitmapDst);
+                    }
+                    else
+                    {
+                        TransformBitmap.ExecuteBackward(bitmapSrc, ref bitmapDst, transformation, InterpolationTypes.Floating_FromSource);
+                    }
                 }
                 RefreshImages();
             }

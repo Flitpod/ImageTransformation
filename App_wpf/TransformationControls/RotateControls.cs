@@ -64,12 +64,13 @@ namespace App_wpf.TransformationControls
             // create combobox for interpolation options
             ComboBox comboBox = new ComboBox();
             comboBox.Items.Add(InterpolationTypes.None.ToString());
+            comboBox.Items.Add(InterpolationTypes.NativeBilinear.ToString());
             comboBox.Items.Add(InterpolationTypes.Floating_FromSource.ToString());
             comboBox.Items.Add(InterpolationTypes.Dir4_FromSource.ToString());
             comboBox.Items.Add(InterpolationTypes.Dir8_FromSource.ToString());
             comboBox.Items.Add(InterpolationTypes.Dir4_ToDestination.ToString());
             comboBox.Items.Add(InterpolationTypes.Dir8_ToDestination.ToString());
-            comboBox.SelectedIndex = (int)InterpolationTypes.Floating_FromSource;
+            comboBox.SelectedIndex = (int)InterpolationTypes.NativeBilinear;
             comboBox.HorizontalAlignment = HorizontalAlignment.Center;
             comboBox.VerticalAlignment = VerticalAlignment.Center;
             comboBox.Margin = new Thickness(2, 0, 2, 0);
