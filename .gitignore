@@ -362,3 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 *.png
+
+# Project properties for debugging
+App_wpf/Properties/
