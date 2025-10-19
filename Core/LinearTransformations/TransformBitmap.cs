@@ -14,7 +14,7 @@ namespace Core
 {
     public enum InterpolationTypes
     {
-        None, Floating_FromSource, Dir4_FromSource, Dir8_FromSource, Dir4_ToDestination, Dir8_ToDestination
+        None, NativeBilinear, Floating_FromSource, Dir4_FromSource, Dir8_FromSource, Dir4_ToDestination, Dir8_ToDestination
     }
 
     public class TransformBitmap
