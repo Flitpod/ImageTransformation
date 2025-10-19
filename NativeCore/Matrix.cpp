@@ -25,7 +25,7 @@ namespace NativeCore {
 	{
 		m_Values = std::vector<double>(rows * cols);
 		for (int i = 0; i < m_Values.size(); i++) {
-			m_Values[i] = 0;
+			m_Values[i] = values[i];
 		}
 	}
 	Matrix::Matrix(int rows, int cols, const std::vector<double>& values)
