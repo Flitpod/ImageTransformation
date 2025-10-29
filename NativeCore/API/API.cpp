@@ -1,22 +1,23 @@
-#include "pch.h"
 #include "API.h"
-#include "Matrix.h"
-#include "LinearTransformation.h"
+#include "..\LinearTransformation\Matrix.h"
+#include "..\LinearTransformation\LinearTransformation.h"
 
-extern "C" {
+extern "C"
+{
 	// transformation
-	NATIVECORE_API int ExecuteHomographyTransformation(
+	int ExecuteHomographyTransformation(
 		int matrixRows,
 		int matrixCols,
-		double* matrixValues,
-		const unsigned char* imgSrc,
-		unsigned char* imgDst,
+		double *matrixValues,
+		const unsigned char *imgSrc,
+		unsigned char *imgDst,
 		const int pixelFormat,
 		const int height,
 		const int width,
-		const int stride
-	) {
-		try {
+		const int stride)
+	{
+		try
+		{
 			NativeCore::Matrix transformation(matrixRows, matrixCols, matrixValues);
 			int result = NativeCore::LinearTransformation::Execute(
 				transformation,
@@ -25,11 +26,11 @@ extern "C" {
 				pixelFormat,
 				height,
 				width,
-				stride
-			);
+				stride);
 			return S_OK;
 		}
-		catch (const std::exception& e) {
+		catch (const std::exception &e)
+		{
 			return E_FAIL;
 		}
 	}

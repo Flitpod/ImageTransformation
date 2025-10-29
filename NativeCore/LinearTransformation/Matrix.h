@@ -1,16 +1,17 @@
 #pragma once
 
-#include "pch.h"
-#include "dllimpexp.h"
+#include "..\API\dllimpexp.h"
 #include <vector>
 
 /*
 Static sized matrix class
 */
 
-namespace NativeCore {
+namespace NativeCore
+{
 
-	class NATIVECORE_API Matrix {
+	class NATIVECORE_API Matrix
+	{
 	private:
 		// members
 		int m_Rows;
@@ -19,35 +20,35 @@ namespace NativeCore {
 
 		// methods
 		void ThrowIfIndexOutOfRange(int row, int col) const;
-		bool CanMultiply(const Matrix& right) const;
+		bool CanMultiply(const Matrix &right) const;
 
 	public:
 		// --- ctors ---
 		Matrix();
 		Matrix(int rows, int cols);
-		Matrix(int rows, int cols, const double* values);
-		Matrix(int rows, int cols, const std::vector<double>& values);
+		Matrix(int rows, int cols, const double *values);
+		Matrix(int rows, int cols, const std::vector<double> &values);
 
 		// --- getters ---
 		int GetRows() const;
 		int GetCols() const;
 
-		// --- operator overrides --- 
+		// --- operator overrides ---
 		// -- indexers
 		const double operator()(int row, int col) const;
-		double& operator()(int row, int col);
+		double &operator()(int row, int col);
 
 		// -- Constant multiplication
 		Matrix operator*(const double constant);
 
 		// -- Matrix multiplication
-		Matrix operator*(const Matrix& right) const;
+		Matrix operator*(const Matrix &right) const;
 
 		// --- Functionality methods ---
-		static int CheckRowChangeReturnSign(Matrix& matrix, int row, int col);
+		static int CheckRowChangeReturnSign(Matrix &matrix, int row, int col);
 		Matrix GetTranspose() const;
 		Matrix GetSubMatrixWithoutRowAndCol(int row, int col) const;
-		Matrix GetReducedEchelonForm(int& singForDeterminant) const;
+		Matrix GetReducedEchelonForm(int &singForDeterminant) const;
 		double GetDeterminant() const;
 		Matrix GetAdjointMatrix() const;
 		Matrix GetInverse() const;
