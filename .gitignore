@@ -365,3 +365,6 @@ FodyWeavers.xsd
 
 # Project properties for debugging
 App_wpf/Properties/
+
+# custom setup build directories content
+build/
