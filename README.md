@@ -1,6 +1,40 @@
+# Dependencies
+Project files supported on *Windows >6.1*
+
+## Build dependencies
+>.NET SDK 6 (x64)
+>MinGW (x64) (msys2 - x64)
+
+
+# Scripts
+Uses .NET SDK 6, CMake, Make, GoogleTest, MinGW. Available Windows *.bat* scripts 
+
+## Scrips/native/
+```.\cleanNative.bat``` 
+- deletes .\NativeCore\build and .\NativeCore.Test\build directories
+
+
+```.\buildNative.bat -c <debug/release>``` 
+options 
+> .\buildNative.bat -> Release
+> .\buildNative.bat -c release -> Release
+> .\buildNative.bat -c debug -> Debug
+- runs *cleanNative.bat*
+- create NativeCore/build and NativeCore.Test/build 
+    - *\build\\\<Config>\x64 -> NativeCore.dll and
+    - *\build\make\make_\<Config>\ -> CMake and Make configs  
+
+
+```.\testNative.bat -c <debug/release>```
+options 
+> .\testNative.bat -> Release
+> .\testNative.bat -c release -> Release
+> .\testNative.bat -c debug -> Debug
+- runs google test NativeCore.Test unit tests
+
 # Native (c++) projects
 
-## NativeCore C++ BUILD COMMANDS with g++
+## NativeCore C++ BUILD COMMAND with g++
 ```
 g++ -D NATIVECORE_EXPORTS -O3 -ffast-math -mavx2 -mtune=native -funroll-loops -finline-functions -shared -s -o .\build\NativeCore.dll .\API\API.cpp .\API\API.h .\API\dllimpexp.h .\LinearTransformation\Matrix.cpp .\LinearTransformation\Matrix.h .\LinearTransformation\LinearTransformation.cpp .\LinearTransformation\LinearTransformation.h
 ```
