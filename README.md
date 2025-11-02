@@ -1,10 +1,10 @@
 # Dependencies
-Project files supported on *Windows >6.1*
+Project files supported on *Windows >6.0*
 
 ## Build dependencies
 >.NET SDK 6 (x64)
 >MinGW (x64) (msys2 - x64)
-
+>CMake (x64)
 
 # Scripts
 Uses .NET SDK 6, CMake, Make, GoogleTest, MinGW. Available Windows *.bat* scripts 
@@ -19,9 +19,9 @@ options
 > .\buildNative.bat -> Release
 > .\buildNative.bat -c release -> Release
 > .\buildNative.bat -c debug -> Debug
-- runs *cleanNative.bat*
-- create NativeCore/build and NativeCore.Test/build 
-    - *\build\\\<Config>\x64 -> NativeCore.dll and
+- runs cleanNative.bat*
+- creates NativeCore/build and NativeCore.Test/build 
+    - *\build\\\<Config>\x64 -> NativeCore.dll and NativeCore.Test
     - *\build\make\make_\<Config>\ -> CMake and Make configs  
 
 
@@ -31,6 +31,38 @@ options
 > .\testNative.bat -c release -> Release
 > .\testNative.bat -c debug -> Debug
 - runs google test NativeCore.Test unit tests
+
+
+## Scrips/dotnet/
+```.\cleanDotnet.bat``` 
+- deletes 
+    - .\App_wpf\bin\
+    - .\App_wpf\obj\
+    - .\Core\bin\
+    - .\Core\obj\
+    - .\Core.Test\bin\
+    - .\Core.Test\obj\
+
+
+```.\buildDotnet.bat -c <debug/release>``` 
+options 
+> .\buildDotnet.bat -> Release
+> .\buildDotnet.bat -c release -> Release
+> .\buildDotnet.bat -c debug -> Debug
+- runs cleanDotnet.bat*
+- create NativeCore/build and NativeCore.Test/build 
+    - *\bin\\\<Config>\net6.0-windows\
+        -  **App_wpf.exe** 
+        - Core.dll 
+        - Core.Tests.dll
+
+
+```.\testDotnet.bat -c <debug/release>```
+options 
+> .\testDotnet.bat -> Release
+> .\testDotnet.bat -c release -> Release
+> .\testDotnet.bat -c debug -> Debug
+- runs Core.Tests NUnit unit tests
 
 # Native (c++) projects
 
