@@ -6,8 +6,8 @@ namespace MatrixTests
 	{
 	};
 
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		GetReducedEchelonFormTestsSuite,
 		GetReducedEchelonFormTests,
 		::testing::Values(
 			std::make_tuple(

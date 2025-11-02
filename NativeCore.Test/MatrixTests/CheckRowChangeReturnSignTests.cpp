@@ -6,8 +6,8 @@ namespace MatrixTests
 	{
 	};
 
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		CheckRowChangeReturnSignTestsSuite,
 		CheckRowChangeReturnSignTests,
 		::testing::Values(
 			std::make_tuple(										   // transpose of 3x3 matrix

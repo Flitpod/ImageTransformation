@@ -6,8 +6,8 @@ namespace MatrixTests
 	{
 	};
 
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		GetAdjointMatrixTestsSuite,
 		GetAdjointMatrixTests,
 		::testing::Values(
 			std::make_tuple(							 // 2X2 matrix for GetAdjointMatrix test

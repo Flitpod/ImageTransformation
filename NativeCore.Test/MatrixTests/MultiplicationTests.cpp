@@ -25,8 +25,8 @@ namespace MatrixTests
 	};
 
 	// MATRIX MULTIPLICATION test parameters fixture
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		MultiplicationTestsSuite,
 		MultiplicationTests,
 		::testing::Values(
 			MultiplicationTestData( // I * B == B, identity * matrix

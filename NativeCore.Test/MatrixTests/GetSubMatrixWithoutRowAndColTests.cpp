@@ -6,8 +6,8 @@ namespace MatrixTests
 	{
 	};
 
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		GetSubMatrixWithoutRowAndColTestsSuite,
 		GetSubMatrixWithoutRowAndColTests,
 		::testing::Values(
 			std::make_tuple(										   // Sub matrix without the given row and col

@@ -1,5 +1,5 @@
 #pragma once
-#include "Matrix.h"
+#include "..\..\NativeCore\LinearTransformation\Matrix.h"
 #include <gtest/gtest.h>
 
 namespace MatrixTests

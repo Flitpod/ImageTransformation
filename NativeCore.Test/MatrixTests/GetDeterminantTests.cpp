@@ -6,8 +6,8 @@ namespace MatrixTests
 	{
 	};
 
-	INSTANTIATE_TEST_CASE_P(
-		,
+	INSTANTIATE_TEST_SUITE_P(
+		GetDeterminantTestsSuite,
 		GetDeterminantTests,
 		::testing::Values(
 			std::make_tuple(										   // 3x3 matrix with determinant 3
