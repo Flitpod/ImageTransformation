@@ -1,31 +1,49 @@
 @echo off
-:: variables, save start dir
-set "start_dir=%CD%"
-set "solution_dir=%~dp0..\.."
+setlocal
+set "script_dir=%~dp0"
+for %%I in ("%script_dir%..\..") do set "solution_dir=%%~fI"
 set "config=Release"
-set "make_dir=make_release"
 
-:: arg parse - config setup
-if "%1"=="-c" (
+if "%~1"=="-c" (
     if /I "%~2"=="debug" (
         set "config=Debug"
-        set "make_dir=make_debug"
     ) else if /I not "%~2"=="release" (
-        echo Usage: %0 [-c debug^|release]
+        echo Usage: %~nx0 [-c debug^|release]
         exit /b 1
     )
 )
 
-:: navigate to the NativeCore.Test google test exe
-set "target_dir=%solution_dir%\NativeCore.Test\build\%config%\x64"
+set "exe_dir=%solution_dir%\NativeCore.Test\build\%config%\x64"
+set "exe=%exe_dir%\NativeCore.Test.exe"
 
-if not exist "%target_dir%\" (
-    echo No %config% build available!
+if not exist "%exe_dir%\" (
+    echo.
+    echo *** ERROR: Build folder not found ***
+    echo     %exe_dir%
+    echo.
+    echo Build first: .\build.bat -c %config%
+    echo.
     exit /b 1
 )
 
-:: run google test
-cd /d "%target_dir%"
-.\NativeCore.Test.exe --gtest_color=yes
+if not exist "%exe%" (
+    echo.
+    echo *** ERROR: Test executable not found ***
+    echo     %exe%
+    echo.
+    exit /b 1
+)
 
-cd /d "%start_dir%"
+echo.
+echo === Running NativeCore.Test (%config%) ===
+pushd "%exe_dir%" >nul
+"%exe%" --gtest_color=yes
+set "rc=%ERRORLEVEL%"
+popd
+
+if %rc%==0 (
+    echo === All native tests PASSED ===
+) else (
+    echo === Some native tests FAILED (code %rc%) ===
+)
+exit /b %rc%
