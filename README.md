@@ -2,9 +2,9 @@
 Project files supported on *Windows >6.0*
 
 ## Build dependencies
->.NET SDK 6 (x64)
->MinGW (x64) (msys2 - x64)
->CMake (x64)
+>.NET SDK 6 (x64)\n
+>MinGW (x64) (msys2 - x64)\n
+>CMake (x64)\n
 
 # Scripts
 Uses .NET SDK 6, CMake, Make, GoogleTest, MinGW. Available Windows *.bat* scripts 
