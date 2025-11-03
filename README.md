@@ -9,6 +9,22 @@ Project files supported on *Windows >6.0*
 # Scripts
 Uses .NET SDK 6, CMake, Make, GoogleTest, MinGW. Available Windows *.bat* scripts 
 
+## Sctipts/
+```clean.bat```
+- calls ```.\native\cleanNative.bat``` and ```.\dotnet\cleanDotnet.bat```
+
+```build.bat```
+- calls ```.\native\buildNative.bat``` and ```.\dotnet\buildnDotnet.bat```
+- first clean and then build all projects
+
+```test.bat```
+- calls ```.\native\testNative.bat``` and ```.\dotnet\testDotnet.bat```
+- runs Google test and NUnit unit tests
+
+```runapp.bat```
+- tries to find Release and Debug *App_wpf.exe* to run in the given order
+
+
 ## Scrips/native/
 ```.\cleanNative.bat``` 
 - deletes .\NativeCore\build and .\NativeCore.Test\build directories
