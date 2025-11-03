@@ -1,7 +1,8 @@
 @echo off
-set "solution_dir=%~dp0..\.."
+setlocal
+set "script_dir=%~dp0"
+for %%I in ("%script_dir%..\..") do set "solution_dir=%%~fI"
 
-:: build all .NET projects
 for %%P in (
     "%solution_dir%\Core\bin"
     "%solution_dir%\Core\obj"
@@ -10,7 +11,11 @@ for %%P in (
     "%solution_dir%\App_wpf\bin"
     "%solution_dir%\App_wpf\obj"
 ) do (
-    if exist "%%P/" rmdir /s /q "%%P"
+    if exist "%%P\" (
+        echo Removing %%P
+        rmdir /s /q "%%P"
+    )
 )
 
-echo Successful App_wpf, Core, Core.Tests clean.
+echo .NET clean complete.
+endlocal
