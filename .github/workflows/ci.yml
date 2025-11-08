@@ -124,8 +124,11 @@ jobs:
         with:
           dotnet-version: '6.0.x'
       
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore Core dependencies
+        run: dotnet restore Core/Core.csproj
+      
+      - name: Restore Core.Tests dependencies
+        run: dotnet restore Core.Tests/Core.Tests.csproj
       
       - name: Run .NET Analyzers on Core
         run: dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:TreatWarningsAsErrors=false
@@ -251,13 +254,12 @@ jobs:
             --verbosity normal
       
       - name: Publish .NET Test Results
-        uses: dorny/test-reporter@v1
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
         with:
-          name: .NET NUnit Test Results
-          path: 'TestResults/*.trx'
-          reporter: dotnet-trx
-          fail-on-error: true
+          check_name: .NET NUnit Test Results
+          files: 'TestResults/*.trx'
+          report_individual_runs: true
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -305,13 +307,12 @@ jobs:
           ./NativeCore.Test.exe --gtest_color=yes --gtest_output=xml:gtest-results.xml
       
       - name: Publish C++ Test Results
-        uses: dorny/test-reporter@v1
+        uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
         with:
-          name: C++ Google Test Results
-          path: '**/gtest-results.xml'
-          reporter: java-junit
-          fail-on-error: true
+          check_name: C++ Google Test Results
+          files: '**/gtest-results.xml'
+          report_individual_runs: true
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -325,63 +326,58 @@ jobs:
   # ============================================
   summary:
     name: CI Pipeline Summary
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: [test-dotnet, test-cpp]
     if: always()
     
     steps:
-      - name: Check build status
-        id: check-build
-        run: |
-          echo "dotnet_test=${{ needs.test-dotnet.result }}" >> $GITHUB_OUTPUT
-          echo "cpp_test=${{ needs.test-cpp.result }}" >> $GITHUB_OUTPUT
-      
       - name: Generate summary
+        shell: pwsh
         run: |
-          echo "## 🔄 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          $summary = @"
+          ## 🔄 CI Pipeline Summary
           
-          echo "### 🏗️ Build Stage" >> $GITHUB_STEP_SUMMARY
-          echo "| Project | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Core + Core.Tests (.NET 6) | ✅ Built |" >> $GITHUB_STEP_SUMMARY
-          echo "| NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          ### 🏗️ Build Stage
+          | Project | Status |
+          |---------|--------|
+          | Core + Core.Tests (.NET 6) | ✅ Built |
+          | NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |
           
-          echo "### 🔍 Code Quality Stage" >> $GITHUB_STEP_SUMMARY
-          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| .NET Code Formatting (dotnet-format) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          echo "| .NET Code Analyzers | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          echo "| C++ Static Analysis (cppcheck) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          echo "| C++ Code Formatting (clang-format) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
+          ### 🔍 Code Quality Stage
+          | Check | Status |
+          |-------|--------|
+          | .NET Code Formatting (dotnet-format) | ✅ Completed |
+          | .NET Code Analyzers | ✅ Completed |
+          | C++ Static Analysis (cppcheck) | ✅ Completed |
+          | C++ Code Formatting (clang-format) | ✅ Completed |
           
-          echo "### 🧪 Test Stage" >> $GITHUB_STEP_SUMMARY
-          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          ### 🧪 Test Stage
+          | Test Suite | Status |
+          |------------|--------|
+          "@
           
-          if [[ "${{ needs.test-dotnet.result }}" == "success" ]]; then
-            echo "| Core.Tests (NUnit) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| Core.Tests (NUnit) | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-          fi
+          $dotnetStatus = "${{ needs.test-dotnet.result }}"
+          $cppStatus = "${{ needs.test-cpp.result }}"
           
-          if [[ "${{ needs.test-cpp.result }}" == "success" ]]; then
-            echo "| NativeCore.Test (Google Test) | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| NativeCore.Test (Google Test) | ❌ Failed |" >> $GITHUB_STEP_SUMMARY
-          fi
+          if ($dotnetStatus -eq "success") {
+            $summary += "| Core.Tests (NUnit) | ✅ Passed |`n"
+          } else {
+            $summary += "| Core.Tests (NUnit) | ❌ Failed |`n"
+          }
           
-          echo "" >> $GITHUB_STEP_SUMMARY
+          if ($cppStatus -eq "success") {
+            $summary += "| NativeCore.Test (Google Test) | ✅ Passed |`n"
+          } else {
+            $summary += "| NativeCore.Test (Google Test) | ❌ Failed |`n"
+          }
           
-          if [[ "${{ needs.test-dotnet.result }}" == "failure" ]] || [[ "${{ needs.test-cpp.result }}" == "failure" ]]; then
-            echo "### ❌ CI Pipeline Failed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "One or more test suites failed. Please check the logs above." >> $GITHUB_STEP_SUMMARY
+          $summary += "`n"
+          
+          if ($dotnetStatus -eq "failure" -or $cppStatus -eq "failure") {
+            $summary += "### ❌ CI Pipeline Failed`n`nOne or more test suites failed. Please check the logs above."
+            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
             exit 1
-          else
-            echo "### ✅ CI Pipeline Passed" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All builds, quality checks, and tests completed successfully!" >> $GITHUB_STEP_SUMMARY
-          fi
+          } else {
+            $summary += "### ✅ CI Pipeline Passed`n`nAll builds, quality checks, and tests completed successfully!"
+            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          }
