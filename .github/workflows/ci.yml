@@ -339,30 +339,29 @@ jobs:
       - name: Generate summary
         shell: pwsh
         run: |
-          $summary = @"
-          ## 🔄 CI Pipeline Summary
-          
-          ### 🏗️ Build Stage
-          | Project | Status |
-          |---------|--------|
-          | Core + Core.Tests (.NET 6) | ✅ Built |
-          | NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |
-          
-          ### 🔍 Code Quality Stage
-          | Check | Status |
-          |-------|--------|
-          | .NET Code Formatting (dotnet-format) | ✅ Completed |
-          | .NET Code Analyzers | ✅ Completed |
-          | C++ Static Analysis (cppcheck) | ✅ Completed |
-          | C++ Code Formatting (clang-format) | ✅ Completed |
-          
-          ### 🧪 Test Stage
-          | Test Suite | Status |
-          |------------|--------|
-          "@
-          
           $dotnetStatus = "${{ needs.test-dotnet.result }}"
           $cppStatus = "${{ needs.test-cpp.result }}"
+          
+          $summary = "## 🔄 CI Pipeline Summary`n`n"
+          $summary += "### 🏗️ Build Stage`n"
+          $summary += "| Project | Status |`n"
+          $summary += "|---------|--------|`n"
+          $summary += "| Core + Core.Tests (.NET 6) | ✅ Built |`n"
+          $summary += "| NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |`n"
+          $summary += "`n"
+          
+          $summary += "### 🔍 Code Quality Stage`n"
+          $summary += "| Check | Status |`n"
+          $summary += "|-------|--------|`n"
+          $summary += "| .NET Code Formatting (dotnet-format) | ✅ Completed |`n"
+          $summary += "| .NET Code Analyzers | ✅ Completed |`n"
+          $summary += "| C++ Static Analysis (cppcheck) | ✅ Completed |`n"
+          $summary += "| C++ Code Formatting (clang-format) | ✅ Completed |`n"
+          $summary += "`n"
+          
+          $summary += "### 🧪 Test Stage`n"
+          $summary += "| Test Suite | Status |`n"
+          $summary += "|------------|--------|`n"
           
           if ($dotnetStatus -eq "success") {
             $summary += "| Core.Tests (NUnit) | ✅ Passed |`n"
@@ -379,10 +378,12 @@ jobs:
           $summary += "`n"
           
           if ($dotnetStatus -eq "failure" -or $cppStatus -eq "failure") {
-            $summary += "### ❌ CI Pipeline Failed`n`nOne or more test suites failed. Please check the logs above."
-            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+            $summary += "### ❌ CI Pipeline Failed`n`n"
+            $summary += "One or more test suites failed. Please check the logs above.`n"
+            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
             exit 1
           } else {
-            $summary += "### ✅ CI Pipeline Passed`n`nAll builds, quality checks, and tests completed successfully!"
-            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+            $summary += "### ✅ CI Pipeline Passed`n`n"
+            $summary += "All builds, quality checks, and tests completed successfully!`n"
+            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
