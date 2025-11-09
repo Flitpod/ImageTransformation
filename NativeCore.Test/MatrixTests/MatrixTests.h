@@ -4,6 +4,6 @@
 
 namespace MatrixTests
 {
-	// MATRIX equality assert helper function
-	void MatricesAreEqual(const NativeCore::Matrix &actual, const NativeCore::Matrix &expected);
-}
+    // MATRIX equality assert helper function
+    void MatricesAreEqual(const NativeCore::Matrix& actual, const NativeCore::Matrix& expected);
+} // namespace MatrixTests
