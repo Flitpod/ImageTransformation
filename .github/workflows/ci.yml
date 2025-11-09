@@ -34,6 +34,9 @@ jobs:
       - name: Build Core.Tests
         run: dotnet build Core.Tests/Core.Tests.csproj -c Release -v minimal
 
+      - name: Build App_wpf
+        run: dotnet build App_wpf/App_wpf.csproj -c Release -v minimal
+
       - name: Upload .NET build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -335,64 +338,3 @@ jobs:
         with:
           name: cpp-test-results
           path: NativeCore.Test/build/Release/x64/gtest-results.xml
-
-  # ============================================
-  # STAGE 4: SUMMARY
-  # ============================================
-  summary:
-    name: CI Pipeline Summary
-    runs-on: windows-latest
-    needs: [test-dotnet, test-cpp]
-    if: always()
-
-    steps:
-      - name: Generate summary
-        shell: pwsh
-        run: |
-          $dotnetStatus = "${{ needs.test-dotnet.result }}"
-          $cppStatus = "${{ needs.test-cpp.result }}"
-
-          $summary = "## 🔄 CI Pipeline Summary`n`n"
-          $summary += "### 🏗️ Build Stage`n"
-          $summary += "| Project | Status |`n"
-          $summary += "|---------|--------|`n"
-          $summary += "| NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |`n"
-          $summary += "`n"
-
-          $summary += "### 🔍 Code Quality Stage`n"
-          $summary += "| Check | Status |`n"
-          $summary += "|-------|--------|`n"
-          $summary += "| .NET Code Formatting (dotnet-format) | ✅ Completed |`n"
-          $summary += "| .NET Code Analyzers | ✅ Completed |`n"
-          $summary += "| C++ Code Formatting (clang-format) | ✅ Completed |`n"
-          $summary += "| C++ Static Analysis (cppcheck) | ✅ Completed |`n"
-          $summary += "`n"
-
-          $summary += "### 🧪 Test Stage`n"
-          $summary += "| Test Suite | Status |`n"
-          $summary += "|------------|--------|`n"
-
-          if ($dotnetStatus -eq "success") {
-            $summary += "| Core.Tests (NUnit) | ✅ Passed |`n"
-          } else {
-            $summary += "| Core.Tests (NUnit) | ❌ Failed |`n"
-          }
-
-          if ($cppStatus -eq "success") {
-            $summary += "| NativeCore.Test (Google Test) | ✅ Passed |`n"
-          } else {
-            $summary += "| NativeCore.Test (Google Test) | ❌ Failed |`n"
-          }
-
-          $summary += "`n"
-
-          if ($dotnetStatus -eq "failure" -or $cppStatus -eq "failure") {
-            $summary += "### ❌ CI Pipeline Failed`n`n"
-            $summary += "One or more test suites failed. Please check the logs above.`n"
-            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-            exit 1
-          } else {
-            $summary += "### ✅ CI Pipeline Passed`n`n"
-            $summary += "All builds, quality checks, and tests completed successfully!`n"
-            $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-          }
