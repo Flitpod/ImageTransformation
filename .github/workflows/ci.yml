@@ -108,12 +108,13 @@ jobs:
         run: dotnet tool install -g dotnet-format
       
       - name: Check Core formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic Core/Core.csproj
-        continue-on-error: true
+        run: dotnet format --verify-no-changes --verbosity minimal Core/Core.csproj
       
       - name: Check Core.Tests formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic Core.Tests/Core.Tests.csproj
-        continue-on-error: true
+        run: dotnet format --verify-no-changes --verbosity minimal Core.Tests/Core.Tests.csproj
+      
+      - name: Check App_wpf formatting
+        run: dotnet format --verify-no-changes --verbosity minimal App_wpf/App_wpf.csproj
 
   quality-dotnet-analyzers:
     name: .NET Code Analyzers
@@ -141,43 +142,6 @@ jobs:
       - name: Run .NET Analyzers on Core.Tests
         run: dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:TreatWarningsAsErrors=false
 
-  quality-cpp-cppcheck:
-    name: C++ Static Analysis (cppcheck)
-    runs-on: windows-latest
-    needs: build-cpp
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Install cppcheck
-        run: choco install cppcheck -y
-      
-      - name: Run cppcheck on NativeCore
-        run: |
-          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem `
-            --xml --xml-version=2 --output-file=cppcheck-nativecore.xml `
-            --project=NativeCore/CMakeLists.txt `
-            NativeCore 2>&1
-        continue-on-error: true
-      
-      - name: Run cppcheck on NativeCore.Test
-        run: |
-          cppcheck --enable=all --inconclusive --suppress=missingIncludeSystem `
-            --xml --xml-version=2 --output-file=cppcheck-test.xml `
-            --project=NativeCore.Test/CMakeLists.txt `
-            NativeCore.Test 2>&1
-        continue-on-error: true
-      
-      - name: Upload cppcheck reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cppcheck-reports
-          path: |
-            cppcheck-nativecore.xml
-            cppcheck-test.xml
-
   quality-cpp-format:
     name: C++ Code Formatting
     runs-on: windows-latest
@@ -193,36 +157,75 @@ jobs:
       - name: Check NativeCore formatting
         run: |
           $files = Get-ChildItem -Path NativeCore -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
-          $exitCode = 0
+          $hasErrors = $false
           foreach ($file in $files) {
-            Write-Host "Checking $($file.FullName)"
-            clang-format --dry-run --Werror $file.FullName 2>&1
+            $output = clang-format --dry-run --Werror $file.FullName 2>&1
             if ($LASTEXITCODE -ne 0) {
-              $exitCode = 1
+              Write-Host "Formatting issue in: $($file.FullName)"
+              $hasErrors = $true
             }
           }
-          if ($exitCode -ne 0) {
-            Write-Host "::warning::C++ formatting issues detected in NativeCore"
+          if ($hasErrors) {
+            Write-Host "::error::NativeCore has formatting issues. Run 'clang-format -i' on the files."
+            exit 1
           }
-          exit $exitCode
-        continue-on-error: true
       
       - name: Check NativeCore.Test formatting
         run: |
           $files = Get-ChildItem -Path NativeCore.Test -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
-          $exitCode = 0
+          $hasErrors = $false
           foreach ($file in $files) {
-            Write-Host "Checking $($file.FullName)"
-            clang-format --dry-run --Werror $file.FullName 2>&1
+            $output = clang-format --dry-run --Werror $file.FullName 2>&1
             if ($LASTEXITCODE -ne 0) {
-              $exitCode = 1
+              Write-Host "Formatting issue in: $($file.FullName)"
+              $hasErrors = $true
             }
           }
-          if ($exitCode -ne 0) {
-            Write-Host "::warning::C++ formatting issues detected in NativeCore.Test"
+          if ($hasErrors) {
+            Write-Host "::error::NativeCore.Test has formatting issues. Run 'clang-format -i' on the files."
+            exit 1
           }
-          exit $exitCode
+
+  quality-cpp-cppcheck:
+    name: C++ Static Analysis (cppcheck)
+    runs-on: windows-latest
+    needs: build-cpp
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install cppcheck
+        run: choco install cppcheck -y
+      
+      - name: Run cppcheck on NativeCore
+        run: |
+          cppcheck --enable=warning,style,performance,portability `
+            --inline-suppr `
+            --suppress=missingIncludeSystem `
+            --error-exitcode=1 `
+            --xml --xml-version=2 --output-file=cppcheck-nativecore.xml `
+            NativeCore 2>&1
         continue-on-error: true
+      
+      - name: Run cppcheck on NativeCore.Test
+        run: |
+          cppcheck --enable=warning,style,performance,portability `
+            --inline-suppr `
+            --suppress=missingIncludeSystem `
+            --error-exitcode=1 `
+            --xml --xml-version=2 --output-file=cppcheck-test.xml `
+            NativeCore.Test 2>&1
+        continue-on-error: true
+      
+      - name: Upload cppcheck reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cppcheck-reports
+          path: |
+            cppcheck-nativecore.xml
+            cppcheck-test.xml
 
   # ============================================
   # STAGE 3: TESTS
@@ -346,7 +349,6 @@ jobs:
           $summary += "### 🏗️ Build Stage`n"
           $summary += "| Project | Status |`n"
           $summary += "|---------|--------|`n"
-          $summary += "| Core + Core.Tests (.NET 6) | ✅ Built |`n"
           $summary += "| NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |`n"
           $summary += "`n"
           
@@ -355,8 +357,8 @@ jobs:
           $summary += "|-------|--------|`n"
           $summary += "| .NET Code Formatting (dotnet-format) | ✅ Completed |`n"
           $summary += "| .NET Code Analyzers | ✅ Completed |`n"
-          $summary += "| C++ Static Analysis (cppcheck) | ✅ Completed |`n"
           $summary += "| C++ Code Formatting (clang-format) | ✅ Completed |`n"
+          $summary += "| C++ Static Analysis (cppcheck) | ✅ Completed |`n"
           $summary += "`n"
           
           $summary += "### 🧪 Test Stage`n"
