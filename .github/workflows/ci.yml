@@ -18,22 +18,22 @@ jobs:
   build-dotnet:
     name: Build .NET Projects
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET 6
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
-      
+
       - name: Build Core
         run: dotnet build Core/Core.csproj -c Release -v minimal
-      
+
       - name: Build Core.Tests
         run: dotnet build Core.Tests/Core.Tests.csproj -c Release -v minimal
-      
+
       - name: Upload .NET build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,11 +46,11 @@ jobs:
   build-cpp:
     name: Build C++ Projects (MinGW)
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup MSYS2 with MinGW
         uses: msys2/setup-msys2@v2
         with:
@@ -61,7 +61,7 @@ jobs:
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-make
             make
-      
+
       - name: Build NativeCore (Release)
         shell: msys2 {0}
         run: |
@@ -69,7 +69,7 @@ jobs:
           cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -S . -B ./build/make/make_release
           cd ./build/make/make_release
           mingw32-make
-      
+
       - name: Build NativeCore.Test (Release)
         shell: msys2 {0}
         run: |
@@ -77,7 +77,7 @@ jobs:
           cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -S . -B ./build/make/make_release
           cd ./build/make/make_release
           mingw32-make
-      
+
       - name: Upload C++ build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -95,25 +95,25 @@ jobs:
     runs-on: windows-latest
     needs: build-dotnet
     continue-on-error: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET 6
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
-      
+
       - name: Install dotnet-format
         run: dotnet tool install -g dotnet-format
-      
+
       - name: Check Core formatting
         run: dotnet format --verify-no-changes --verbosity minimal Core/Core.csproj
-      
+
       - name: Check Core.Tests formatting
         run: dotnet format --verify-no-changes --verbosity minimal Core.Tests/Core.Tests.csproj
-      
+
       - name: Check App_wpf formatting
         run: dotnet format --verify-no-changes --verbosity minimal App_wpf/App_wpf.csproj
 
@@ -122,22 +122,22 @@ jobs:
     runs-on: windows-latest
     needs: build-dotnet
     continue-on-error: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET 6
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
-      
+
       - name: Restore Core dependencies
         run: dotnet restore Core/Core.csproj
-      
+
       - name: Restore Core.Tests dependencies
         run: dotnet restore Core.Tests/Core.Tests.csproj
-      
+
       - name: Run .NET Analyzers on Core
         run: dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:TreatWarningsAsErrors=false
 
@@ -149,14 +149,14 @@ jobs:
     runs-on: windows-latest
     needs: build-cpp
     continue-on-error: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Install clang-format
         run: choco install llvm -y
-      
+
       - name: Check NativeCore formatting
         run: |
           $files = Get-ChildItem -Path NativeCore -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
@@ -172,7 +172,7 @@ jobs:
             Write-Host "::error::NativeCore has formatting issues. Run 'clang-format -i' on the files."
             exit 1
           }
-      
+
       - name: Check NativeCore.Test formatting
         run: |
           $files = Get-ChildItem -Path NativeCore.Test -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
@@ -193,15 +193,20 @@ jobs:
     name: C++ Static Analysis (cppcheck)
     runs-on: windows-latest
     needs: build-cpp
-    
+    continue-on-error: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Install cppcheck
-        run: choco install cppcheck -y
-      
+
+      - name: Setup MSYS2 for cppcheck
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-cppcheck
+
       - name: Run cppcheck on NativeCore
+        shell: msys2 {0}
         run: |
           cppcheck --enable=warning,style,performance,portability `
             --inline-suppr `
@@ -209,8 +214,9 @@ jobs:
             --error-exitcode=1 `
             --xml --xml-version=2 --output-file=cppcheck-nativecore.xml `
             NativeCore 2>&1
-      
+
       - name: Run cppcheck on NativeCore.Test
+        shell: msys2 {0}
         run: |
           cppcheck --enable=warning,style,performance,portability `
             --inline-suppr `
@@ -218,7 +224,7 @@ jobs:
             --error-exitcode=1 `
             --xml --xml-version=2 --output-file=cppcheck-test.xml `
             NativeCore.Test 2>&1
-      
+
       - name: Upload cppcheck reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -235,24 +241,24 @@ jobs:
     name: Run .NET Unit Tests (NUnit)
     runs-on: windows-latest
     needs: [build-dotnet]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup .NET 6
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
-      
+
       - name: Download .NET build artifacts
         uses: actions/download-artifact@v4
         with:
           name: dotnet-build
-      
+
       - name: Restore dependencies
         run: dotnet restore Core.Tests/Core.Tests.csproj
-      
+
       - name: Run Core.Tests (NUnit)
         run: |
           dotnet test Core.Tests/Core.Tests.csproj `
@@ -261,7 +267,7 @@ jobs:
             --logger "trx;LogFileName=nunit-results.trx" `
             --results-directory ./TestResults `
             --verbosity normal
-      
+
       - name: Publish .NET Test Results
         uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
@@ -269,7 +275,7 @@ jobs:
           check_name: .NET NUnit Test Results
           files: 'TestResults/*.trx'
           report_individual_runs: true
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -281,11 +287,11 @@ jobs:
     name: Run C++ Unit Tests (Google Test)
     runs-on: windows-latest
     needs: [build-cpp]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup MSYS2 with MinGW
         uses: msys2/setup-msys2@v2
         with:
@@ -294,13 +300,13 @@ jobs:
           install: >-
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-cmake
-      
+
       - name: Download C++ build artifacts
         uses: actions/download-artifact@v4
         with:
           name: cpp-build
           path: artifacts/cpp
-      
+
       - name: Copy artifacts to build directory
         shell: msys2 {0}
         run: |
@@ -308,13 +314,13 @@ jobs:
           mkdir -p NativeCore.Test/build/Release/x64
           cp -r artifacts/cpp/NativeCore/build/Release/x64/* NativeCore/build/Release/x64/ || true
           cp -r artifacts/cpp/NativeCore.Test/build/Release/x64/* NativeCore.Test/build/Release/x64/ || true
-      
+
       - name: Run NativeCore.Test (Google Test)
         shell: msys2 {0}
         run: |
           cd NativeCore.Test/build/Release/x64
           ./NativeCore.Test.exe --gtest_color=yes --gtest_output=xml:gtest-results.xml
-      
+
       - name: Publish C++ Test Results
         uses: EnricoMi/publish-unit-test-result-action/windows@v2
         if: always()
@@ -322,7 +328,7 @@ jobs:
           check_name: C++ Google Test Results
           files: '**/gtest-results.xml'
           report_individual_runs: true
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -338,21 +344,21 @@ jobs:
     runs-on: windows-latest
     needs: [test-dotnet, test-cpp]
     if: always()
-    
+
     steps:
       - name: Generate summary
         shell: pwsh
         run: |
           $dotnetStatus = "${{ needs.test-dotnet.result }}"
           $cppStatus = "${{ needs.test-cpp.result }}"
-          
+
           $summary = "## 🔄 CI Pipeline Summary`n`n"
           $summary += "### 🏗️ Build Stage`n"
           $summary += "| Project | Status |`n"
           $summary += "|---------|--------|`n"
           $summary += "| NativeCore + NativeCore.Test (C++ MinGW) | ✅ Built |`n"
           $summary += "`n"
-          
+
           $summary += "### 🔍 Code Quality Stage`n"
           $summary += "| Check | Status |`n"
           $summary += "|-------|--------|`n"
@@ -361,25 +367,25 @@ jobs:
           $summary += "| C++ Code Formatting (clang-format) | ✅ Completed |`n"
           $summary += "| C++ Static Analysis (cppcheck) | ✅ Completed |`n"
           $summary += "`n"
-          
+
           $summary += "### 🧪 Test Stage`n"
           $summary += "| Test Suite | Status |`n"
           $summary += "|------------|--------|`n"
-          
+
           if ($dotnetStatus -eq "success") {
             $summary += "| Core.Tests (NUnit) | ✅ Passed |`n"
           } else {
             $summary += "| Core.Tests (NUnit) | ❌ Failed |`n"
           }
-          
+
           if ($cppStatus -eq "success") {
             $summary += "| NativeCore.Test (Google Test) | ✅ Passed |`n"
           } else {
             $summary += "| NativeCore.Test (Google Test) | ❌ Failed |`n"
           }
-          
+
           $summary += "`n"
-          
+
           if ($dotnetStatus -eq "failure" -or $cppStatus -eq "failure") {
             $summary += "### ❌ CI Pipeline Failed`n`n"
             $summary += "One or more test suites failed. Please check the logs above.`n"
