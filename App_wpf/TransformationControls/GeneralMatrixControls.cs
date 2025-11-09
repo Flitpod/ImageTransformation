@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
-using static System.Net.Mime.MediaTypeNames;
 using System.Text.RegularExpressions;
-using ImageTransformation.Core;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using Core;
+using ImageTransformation.Core;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace App_wpf.TransformationControls
 {
@@ -183,7 +183,7 @@ namespace App_wpf.TransformationControls
                         Text = identity[row, col].ToString()
                     };
                     textBox.PreviewTextInput += NumberValidationTextBox;
-                    if(row >= 3)
+                    if (row >= 3)
                     {
                         textBox.IsReadOnly = true;
                     }

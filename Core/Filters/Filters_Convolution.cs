@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using ImageTransformation.Core;
-using System.Threading.Channels;
 
 namespace Core
 {
@@ -53,7 +53,7 @@ namespace Core
             // copy the frame from the source image into the destination image
             long imageLengthSrc = height * strideSrc;
             long imageLengthDest = height * strideDest;
-            
+
             // top and bottom rows
             for (int frameDepth = 0; frameDepth < offsetDest; frameDepth++)
             {
@@ -62,11 +62,11 @@ namespace Core
                     for (int channel = 0; channel < 3; channel++)
                     {
                         // upper rows
-                        ptrDest0[frameDepth * strideDest + col * pixFormatDest + channel] = 
+                        ptrDest0[frameDepth * strideDest + col * pixFormatDest + channel] =
                             ptrSrc0[frameDepth * strideSrc + col * pixFormatSrc + channel];
 
                         // bottom rows
-                        ptrDest0[imageLengthDest - (frameDepth * strideDest + col * pixFormatDest + channel)] = 
+                        ptrDest0[imageLengthDest - (frameDepth * strideDest + col * pixFormatDest + channel)] =
                             ptrSrc0[imageLengthSrc - (frameDepth * strideSrc + col * pixFormatSrc + channel)];
                     }
                 }
@@ -80,11 +80,11 @@ namespace Core
                     for (int channel = 0; channel < 3; channel++)
                     {
                         // left cols
-                        ptrDest0[frameDepth * pixFormatDest + row * strideDest + channel] = 
+                        ptrDest0[frameDepth * pixFormatDest + row * strideDest + channel] =
                             ptrSrc0[frameDepth * pixFormatDest + row * strideDest + channel];
 
                         // right cols
-                        ptrDest0[imageLengthDest - (frameDepth * pixFormatDest + row * strideDest + channel + pixFormatDest + 1)] = 
+                        ptrDest0[imageLengthDest - (frameDepth * pixFormatDest + row * strideDest + channel + pixFormatDest + 1)] =
                             ptrSrc0[imageLengthSrc - (frameDepth * pixFormatSrc + row * strideSrc + channel + pixFormatSrc + 1)];
                     }
                 }

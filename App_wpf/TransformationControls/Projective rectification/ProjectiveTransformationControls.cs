@@ -1,16 +1,16 @@
-﻿using Core;
-using ImageTransformation.Core;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics;
+using Core;
 using Core.Detection;
+using ImageTransformation.Core;
 using Point = System.Windows.Point;
-using System.Drawing;
 
 namespace App_wpf.TransformationControls
 {
@@ -54,7 +54,7 @@ namespace App_wpf.TransformationControls
             _image = image ?? throw new ArgumentNullException(nameof(image));
             _bitmapSource = bitmapSource ?? throw new ArgumentNullException(nameof(bitmapSource));
             _points_relative = InitializePoints();
-            
+
             CreateLayout();
             InitializeCanvas();
         }
@@ -145,7 +145,7 @@ namespace App_wpf.TransformationControls
         {
             ResetDragState();
             CheckIsDragging(mouseEventArgs);
-            
+
             if (_pointSelected)
             {
                 UpdateDraggedPoint(mouseEventArgs);
@@ -155,7 +155,7 @@ namespace App_wpf.TransformationControls
         private void Handler_MouseMove(object sender, MouseEventArgs mouseEventArgs)
         {
             UpdateMousePositionText(mouseEventArgs);
-            
+
             if (_isDragging && _pointSelected && mouseEventArgs.LeftButton == MouseButtonState.Pressed)
             {
                 UpdateDraggedPoint(mouseEventArgs);
@@ -298,7 +298,7 @@ namespace App_wpf.TransformationControls
 
             var (offsetW, offsetH) = CalculateOffsets();
             var polygon = CreatePolygon(offsetW, offsetH);
-            
+
             foreach (var point in _points_relative)
             {
                 var (col, row) = GetAbsolutePosition(point);
@@ -354,7 +354,7 @@ namespace App_wpf.TransformationControls
             Point cursorPos = MousePositionOverImage(mouseEventArgs);
             Point normalizedCursorPosition = GetNormalizedPosition(cursorPos);
 
-            _dragged_point = _points_relative.FirstOrDefault(point => 
+            _dragged_point = _points_relative.FirstOrDefault(point =>
                 GetDistance(point.GetPoint(), normalizedCursorPosition) <= _POINT_SELECTION_THRESHOLD);
 
             if (_dragged_point != null)

@@ -1,10 +1,10 @@
-﻿using Core;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using Core;
 
 namespace App_wpf.TransformationControls
 {
@@ -81,7 +81,7 @@ namespace App_wpf.TransformationControls
             // visibility changes
             checkBox.Click += (s, e) =>
             {
-                if(checkBox.IsChecked == true)
+                if (checkBox.IsChecked == true)
                 {
                     comboBox.Visibility = Visibility.Visible;
                     label.Visibility = Visibility.Visible;
@@ -121,7 +121,7 @@ namespace App_wpf.TransformationControls
             // create close button
             Button button = new Button();
             button.Content = "Close";
-            button.Margin = new Thickness(0,0,2,0);
+            button.Margin = new Thickness(0, 0, 2, 0);
             Grid.SetColumn(button, 6);
             grid.Children.Add(button);
             this.CloseBtn = button;

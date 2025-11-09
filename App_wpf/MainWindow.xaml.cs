@@ -1,10 +1,3 @@
-﻿using App_wpf;
-using App_wpf.TransformationControls;
-using Core;
-using Core.Detection;
-using Core.LinearTransformations;
-using ImageTransformation.Core;
-using Microsoft.Win32;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -20,6 +13,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.TextFormatting;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using App_wpf;
+using App_wpf.TransformationControls;
+using Core;
+using Core.Detection;
+using Core.LinearTransformations;
+using ImageTransformation.Core;
+using Microsoft.Win32;
 
 namespace ImageTransformation.App
 {
@@ -59,7 +59,8 @@ namespace ImageTransformation.App
 
         private void click_SaveFileDialog(object sender, EventArgs e)
         {
-            if (this.bitmapDst == null) return;
+            if (this.bitmapDst == null)
+                return;
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "All files (*.*)|*.*";
             if (saveFileDialog.ShowDialog() == true)
@@ -86,7 +87,8 @@ namespace ImageTransformation.App
         // create rotate transformation toolbar
         private void click_TransformationRotate(object sender, RoutedEventArgs e)
         {
-            if (IsToolbarControlOpen()) return;
+            if (IsToolbarControlOpen())
+                return;
 
             // create control elements in a stackpanel
             RotateControls rotateControls = new RotateControls();
@@ -111,7 +113,8 @@ namespace ImageTransformation.App
         // create general transformation toolbar
         private void click_TransformationGeneral(object sender, RoutedEventArgs e)
         {
-            if (IsToolbarControlOpen()) return;
+            if (IsToolbarControlOpen())
+                return;
 
             // create control elements in a stackpanel
             GeneralMatrixControls generalMatrixControls = new GeneralMatrixControls(matrix_size: 3);
@@ -136,7 +139,8 @@ namespace ImageTransformation.App
         // create projective rectification transformation toolbar and set canvas to it
         private void click_TransformationProjectiveRectification(object sender, RoutedEventArgs e)
         {
-            if (IsToolbarControlOpen() || this.imageSource.Source == null) return;
+            if (IsToolbarControlOpen() || this.imageSource.Source == null)
+                return;
 
             // create control elements for the control grid
             ProjectiveTransformationControls projTransfControls = new ProjectiveTransformationControls(this.canvasSource, this.imageSource, this.bitmapSrc);
@@ -227,7 +231,8 @@ namespace ImageTransformation.App
         // get transformation matrix for rotate transformation
         private void ExecuteRotateTransformation()
         {
-            if (bitmapSrc == null) return;
+            if (bitmapSrc == null)
+                return;
             RotateControls controls = (transformationControls as RotateControls);
             Core.Matrix transformation = Transformations.Rotation(controls.Slider.Value, bitmapSrc.Height / 2.0, bitmapSrc.Width / 2.0, Dimension.D3);
 
@@ -237,7 +242,8 @@ namespace ImageTransformation.App
         // get transformation matrix for general transformation
         private void ExecuteGeneralTransformation()
         {
-            if (bitmapSrc == null) return;
+            if (bitmapSrc == null)
+                return;
             GeneralMatrixControls controls = (transformationControls as GeneralMatrixControls);
             Core.Matrix transformation = controls.GetTransformation();
 
@@ -247,7 +253,8 @@ namespace ImageTransformation.App
         // get transformation matrix for projective rectification
         private void ExecuteProjectiveRectificationTransformation()
         {
-            if (bitmapSrc == null) return;
+            if (bitmapSrc == null)
+                return;
             ProjectiveTransformationControls controls = (transformationControls as ProjectiveTransformationControls);
             Core.Matrix transformation = controls.GetTransformation();
 

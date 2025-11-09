@@ -1,4 +1,4 @@
-﻿namespace ImageTransformation.Core
+namespace ImageTransformation.Core
 {
     public enum Dimension
     {

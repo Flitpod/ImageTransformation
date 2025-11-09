@@ -1,10 +1,10 @@
-﻿using Core.Detection;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Detection;
 
 namespace Core.Processors
 {

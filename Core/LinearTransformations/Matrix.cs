@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -75,7 +75,7 @@ namespace ImageTransformation.Core
         }
     }
 
-    public class Matrix: IEnumerable<double>
+    public class Matrix : IEnumerable<double>
     {
         // fields - properties
         private double[,] values;
@@ -100,7 +100,7 @@ namespace ImageTransformation.Core
         // ctors
         public Matrix()
         {
-            
+
         }
         public Matrix(int rows, int cols)
         {
@@ -123,12 +123,12 @@ namespace ImageTransformation.Core
                 vector[i, 0] = 1;
             }
 
-            vector[0,0] = x;
-            vector[1,0] = y;
+            vector[0, 0] = x;
+            vector[1, 0] = y;
 
             return vector;
         }
-        
+
         private static bool CanMultiply(Matrix left, Matrix right) => (left.Cols == right.Rows);
         public static int CheckRowChangeReturnSign(Matrix matrix, int row, int col)
         {
@@ -141,7 +141,7 @@ namespace ImageTransformation.Core
                 }
                 if (rowToSwapIdx < matrix.Rows)
                 {
-                    for(; col< matrix.Cols; col++)
+                    for (; col < matrix.Cols; col++)
                     {
                         (matrix[row, col], matrix[rowToSwapIdx, col]) = (matrix[rowToSwapIdx, col], matrix[row, col]);
                     }
@@ -219,7 +219,8 @@ namespace ImageTransformation.Core
         public Matrix GetInverse()
         {
             double determinant = this.GetDeterminant();
-            if (determinant == 0) throw new Exception("Matrix has no inverse.");
+            if (determinant == 0)
+                throw new Exception("Matrix has no inverse.");
             return this.GetAdjointMatrix() * (1 / determinant);
         }
         public double GetDeterminant()
@@ -234,7 +235,8 @@ namespace ImageTransformation.Core
         }
         public Matrix GetReducedEchelonForm(out int signForDeterminant)
         {
-            if (this.Rows != this.Cols) throw new Exception("Matrix is not n x n sized!");
+            if (this.Rows != this.Cols)
+                throw new Exception("Matrix is not n x n sized!");
             Matrix result = this.GetDeepCopy();
             signForDeterminant = 1;
             for (int k = 1; k < result.Rows; k++)
@@ -243,7 +245,8 @@ namespace ImageTransformation.Core
                 {
                     signForDeterminant *= CheckRowChangeReturnSign(result, k - 1, k - 1);
                     double mul = -1 * (result[i, k - 1] / result[k - 1, k - 1]);
-                    if (double.IsNaN(mul)) mul = 1;
+                    if (double.IsNaN(mul))
+                        mul = 1;
                     for (int j = k - 1; j < result.Cols; j++)
                     {
                         result[i, j] = result[i, j] + (mul * result[k - 1, j]);
@@ -282,7 +285,7 @@ namespace ImageTransformation.Core
             int rRow = 0;
             for (int i = 0; i < this.Rows; i++)
             {
-                if(i == row)
+                if (i == row)
                 {
                     continue;
                 }

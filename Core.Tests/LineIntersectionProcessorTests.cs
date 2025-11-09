@@ -1,11 +1,11 @@
-﻿using Core.Detection;
-using Core.Processors;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Detection;
+using Core.Processors;
 
 namespace Core.Tests
 {
@@ -126,7 +126,7 @@ namespace Core.Tests
             // arrange 
 
             // act
-            var actual = LineIntersectionProcessor.GetIntersectionsFromPolarLines(lines).OrderBy(l => l.Y);     
+            var actual = LineIntersectionProcessor.GetIntersectionsFromPolarLines(lines).OrderBy(l => l.Y);
 
             // assert
             Assert.That(actual, Is.EquivalentTo(expected));

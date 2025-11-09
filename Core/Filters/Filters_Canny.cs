@@ -1,5 +1,3 @@
-﻿using Core.Processors;
-using ImageTransformation.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,6 +6,8 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Processors;
+using ImageTransformation.Core;
 
 namespace Core
 {
@@ -91,7 +91,7 @@ namespace Core
                 gradientMaxValue: out int gradientMaxValue
             );
 
-            
+
             // set the frame to value 0
             CannyProcessor.SetFrameToZero(
                 image: destination,
@@ -130,10 +130,10 @@ namespace Core
             // Unlock bitmaps
             CannyProcessor.UnlockBitmaps(
                 source: source,
-                destination: destination, 
-                buffer: buffer, 
+                destination: destination,
+                buffer: buffer,
                 bitmapDataSource: bitmapDataSource,
-                bitmapDataDestination: bitmapDataDestination, 
+                bitmapDataDestination: bitmapDataDestination,
                 bitmapDataBuffer: bitmapDataBuffer
             );
         }

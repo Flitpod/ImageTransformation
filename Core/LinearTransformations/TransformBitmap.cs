@@ -1,5 +1,3 @@
-﻿using Core.Processors;
-using ImageTransformation.Core;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,6 +7,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Processors;
+using ImageTransformation.Core;
 
 namespace Core
 {
@@ -143,7 +143,7 @@ namespace Core
                             byte* ptrDest = (byte*)(ptrDest0 + row * strideR + col * pixelFormat);
 
                             // get the vector contains the actual pixel coordinates
-                            Matrix coordsDest = Matrix.GetVector(x:  row, y: col, dimension: dimension);
+                            Matrix coordsDest = Matrix.GetVector(x: row, y: col, dimension: dimension);
 
                             // calcuate the destination cordinates (pixels)
                             Matrix coordsSrc = invTransformation * coordsDest;
@@ -673,7 +673,8 @@ namespace Core
 
         private static void CheckBitmaps(Bitmap source, ref Bitmap result)
         {
-            if (source == null) throw new ArgumentNullException("Source is null.");
+            if (source == null)
+                throw new ArgumentNullException("Source is null.");
             if (result == null || source.Size != result.Size)
             {
                 result = new Bitmap(source.Width, source.Height);

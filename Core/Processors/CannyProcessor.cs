@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ImageTransformation.Core;
-using System.IO.MemoryMappedFiles;
 
 namespace Core.Processors
 {
