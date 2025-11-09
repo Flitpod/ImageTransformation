@@ -179,22 +179,12 @@ jobs:
       - name: Run cppcheck on NativeCore
         shell: msys2 {0}
         run: |
-          cppcheck --enable=warning,style,performance,portability `
-            --inline-suppr `
-            --suppress=missingIncludeSystem `
-            --error-exitcode=1 `
-            --xml --xml-version=2 --output-file=cppcheck-nativecore.xml `
-            NativeCore 2>&1
+          cppcheck --enable=warning,style,performance,portability --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
 
       - name: Run cppcheck on NativeCore.Test
         shell: msys2 {0}
         run: |
-          cppcheck --enable=warning,style,performance,portability `
-            --inline-suppr `
-            --suppress=missingIncludeSystem `
-            --error-exitcode=1 `
-            --xml --xml-version=2 --output-file=cppcheck-test.xml `
-            NativeCore.Test 2>&1
+          cppcheck --enable=warning,style,performance,portability --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore.Test 2>&1
 
       - name: Upload cppcheck reports
         uses: actions/upload-artifact@v4
