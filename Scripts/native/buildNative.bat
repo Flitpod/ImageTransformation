@@ -24,7 +24,7 @@ call "%script_dir%cleanNative.bat" -c %config% || exit /b 1
 echo.
 echo --- Building NativeCore ---
 pushd "%solution_dir%\NativeCore" >nul || exit /b 1
-cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%config% -S . -B .\build\make\%make_dir% || exit /b 1
+cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%config% -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -S . -B .\build\make\%make_dir% || exit /b 1
 cd /d ".\build\make\%make_dir%" || exit /b 1
 mingw32-make || exit /b 1
 popd
@@ -33,7 +33,7 @@ popd
 echo.
 echo --- Building NativeCore.Test ---
 pushd "%solution_dir%\NativeCore.Test" >nul || exit /b 1
-cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%config% -S . -B .\build\make\%make_dir% || exit /b 1
+cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=%config% -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -S . -B .\build\make\%make_dir% || exit /b 1
 cd /d ".\build\make\%make_dir%" || exit /b 1
 mingw32-make || exit /b 1
 popd
