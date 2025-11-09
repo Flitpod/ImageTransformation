@@ -15,36 +15,6 @@ jobs:
   # ============================================
   # STAGE 1: BUILD
   # ============================================
-  build-dotnet:
-    name: Build .NET Projects
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: Build Core
-        run: dotnet build Core/Core.csproj -c Release -v minimal
-
-      - name: Build Core.Tests
-        run: dotnet build Core.Tests/Core.Tests.csproj -c Release -v minimal
-
-      - name: Build App_wpf
-        run: dotnet build App_wpf/App_wpf.csproj -c Release -v minimal
-
-      - name: Upload .NET build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dotnet-build
-          path: |
-            Core/bin/Release/
-            Core.Tests/bin/Release/
-          retention-days: 1
 
   build-cpp:
     name: Build C++ Projects (MinGW)
@@ -96,7 +66,6 @@ jobs:
   quality-dotnet-format:
     name: .NET Code Formatting
     runs-on: windows-latest
-    needs: build-dotnet
     continue-on-error: true
 
     steps:
@@ -123,7 +92,6 @@ jobs:
   quality-dotnet-analyzers:
     name: .NET Code Analyzers
     runs-on: windows-latest
-    needs: build-dotnet
     continue-on-error: true
 
     steps:
@@ -243,7 +211,6 @@ jobs:
   test-dotnet:
     name: Run .NET Unit Tests (NUnit)
     runs-on: windows-latest
-    needs: [build-dotnet]
 
     steps:
       - name: Checkout code
