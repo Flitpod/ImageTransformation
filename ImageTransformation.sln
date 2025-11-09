@@ -8,9 +8,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App_wpf", "App_wpf\App_wpf.csproj", "{0D7DB798-D7EB-41C0-ACE7-5856DCB2F881}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{6284C422-FE90-4CAE-8A06-82A62595BFAB}"
-	ProjectSection(ProjectDependencies) = postProject
-		{90540DE1-CB1A-4027-8706-1FE6965BCD04} = {90540DE1-CB1A-4027-8706-1FE6965BCD04}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
