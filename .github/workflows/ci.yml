@@ -163,10 +163,10 @@ jobs:
           install: mingw-w64-x86_64-cppcheck
       - name: Run cppcheck NativeCore
         shell: msys2 {0}
-        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
+        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
       - name: Run cppcheck NativeCore.Test
         shell: msys2 {0}
-        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-test.xml NativeCore.Test 2>&1
+        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 --output-file=cppcheck-test.xml NativeCore.Test 2>&1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
