@@ -160,30 +160,30 @@ jobs:
     runs-on: windows-latest
     needs: [build-cpp]
     continue-on-error: true
+    permissions:
+      security-events: write   # needed for SARIF upload
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           install: mingw-w64-x86_64-cppcheck
 
-      - name: Run cppcheck NativeCore
+        # ----- NativeCore -----
+      - name: cppcheck – NativeCore
         shell: msys2 {0}
         run: |
-          cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore 2> cppcheck-nativecore.xml
+          cppcheck --quiet --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore 2> cppcheck-nativecore.xml
 
-      - name: Run cppcheck NativeCore.Test
+        # ----- NativeCore.Test -----
+      - name: cppcheck – NativeCore.Test
         shell: msys2 {0}
         run: |
-          cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore.Test 2> cppcheck-test.xml
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: cppcheck-reports
-          path: cppcheck-*.xml
-
-      - uses: github/codeql-action/upload-sarif@v3
+          cppcheck --quiet --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore.Test 2> cppcheck-test.xml
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: cppcheck-*.xml
 
