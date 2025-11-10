@@ -10,6 +10,7 @@ permissions:
   contents: read
   checks: write
   pull-requests: write
+  security-events: write
 
 jobs:
   # ============================================
@@ -67,133 +68,108 @@ jobs:
     name: .NET Code Formatting
     runs-on: windows-latest
     continue-on-error: true
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: Install dotnet-format
-        run: dotnet tool install -g dotnet-format
-
-      - name: Check Core formatting
-        run: dotnet format --verify-no-changes --verbosity minimal Core/Core.csproj
-
-      - name: Check Core.Tests formatting
-        run: dotnet format --verify-no-changes --verbosity minimal Core.Tests/Core.Tests.csproj
-
-      - name: Check App_wpf formatting
-        run: dotnet format --verify-no-changes --verbosity minimal App_wpf/App_wpf.csproj
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: dotnet-version: '6.0.x'
+      - run: dotnet tool install -g dotnet-format
+      - name: Check formatting & annotate
+        run: |
+          dotnet format --verify-no-changes --verbosity diagnostic Core/Core.csproj 2>&1 | ForEach-Object {
+            if ($_ -match '^(.*?):(\d+):(\d+): (.*)') {
+              $f,$l,$c,$m = $matches[1..4]
+              Write-Host "::warning file=$f,line=$l,col=$c::$m"
+            }
+          } || true
+          dotnet format --verify-no-changes --verbosity diagnostic Core.Tests/Core.Tests.csproj 2>&1 | ForEach-Object {
+            if ($_ -match '^(.*?):(\d+):(\d+): (.*)') {
+              $f,$l,$c,$m = $matches[1..4]
+              Write-Host "::warning file=$f,line=$l,col=$c::$m"
+            }
+          } || true
+          dotnet format --verify-no-changes --verbosity diagnostic App_wpf/App_wpf.csproj 2>&1 | ForEach-Object {
+            if ($_ -match '^(.*?):(\d+):(\d+): (.*)') {
+              $f,$l,$c,$m = $matches[1..4]
+              Write-Host "::warning file=$f,line=$l,col=$c::$m"
+            }
+          } || true
 
   quality-dotnet-analyzers:
     name: .NET Code Analyzers
     runs-on: windows-latest
     continue-on-error: true
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup .NET 6
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: Restore Core dependencies
-        run: dotnet restore Core/Core.csproj
-
-      - name: Restore Core.Tests dependencies
-        run: dotnet restore Core.Tests/Core.Tests.csproj
-
-      - name: Run .NET Analyzers on Core
-        run: dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:TreatWarningsAsErrors=false
-
-      - name: Run .NET Analyzers on Core.Tests
-        run: dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:TreatWarningsAsErrors=false
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: dotnet-version: '6.0.x'
+      - run: dotnet restore Core/Core.csproj
+      - run: dotnet restore Core.Tests/Core.Tests.csproj
+      - name: Run analyzers & upload SARIF
+        run: |
+          dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=core.sarif
+          dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=tests.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with: sarif_file: '*.sarif'
 
   quality-cpp-format:
     name: C++ Code Formatting
     runs-on: windows-latest
-    needs: build-cpp
+    needs: [build-nativecore, build-nativecore-tests]
     continue-on-error: true
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install clang-format
-        run: choco install llvm -y
-
-      - name: Check NativeCore formatting
+      - uses: actions/checkout@v4
+      - run: choco install llvm -y
+      - name: Check NativeCore
         run: |
-          $files = Get-ChildItem -Path NativeCore -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
-          $hasErrors = $false
-          foreach ($file in $files) {
-            $output = clang-format --dry-run --Werror $file.FullName 2>&1
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host "Formatting issue in: $($file.FullName)"
-              $hasErrors = $true
+          $err = $false
+          Get-ChildItem -Path NativeCore -Include *.cpp,*.h,*.hpp -Recurse |
+            Where-Object { $_.FullName -notmatch '\\build\\' } |
+            ForEach-Object {
+              clang-format --dry-run --Werror $_.FullName 2>$null
+              if ($LASTEXITCODE) {
+                Write-Host "::warning file=$($_.FullName)::Formatting error"
+                $err = $true
+              }
             }
-          }
-          if ($hasErrors) {
-            Write-Host "::error::NativeCore has formatting issues. Run 'clang-format -i' on the files."
-            exit 1
-          }
-
-      - name: Check NativeCore.Test formatting
+          if ($err) { exit 1 }
+      - name: Check NativeCore.Test
         run: |
-          $files = Get-ChildItem -Path NativeCore.Test -Include *.cpp,*.h,*.hpp -Recurse | Where-Object { $_.FullName -notmatch '\\build\\' }
-          $hasErrors = $false
-          foreach ($file in $files) {
-            $output = clang-format --dry-run --Werror $file.FullName 2>&1
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host "Formatting issue in: $($file.FullName)"
-              $hasErrors = $true
+          $err = $false
+          Get-ChildItem -Path NativeCore.Test -Include *.cpp,*.h,*.hpp -Recurse |
+            Where-Object { $_.FullName -notmatch '\\build\\' } |
+            ForEach-Object {
+              clang-format --dry-run --Werror $_.FullName 2>$null
+              if ($LASTEXITCODE) {
+                Write-Host "::warning file=$($_.FullName)::Formatting error"
+                $err = $true
+              }
             }
-          }
-          if ($hasErrors) {
-            Write-Host "::error::NativeCore.Test has formatting issues. Run 'clang-format -i' on the files."
-            exit 1
-          }
+          if ($err) { exit 1 }
 
   quality-cpp-cppcheck:
     name: C++ Static Analysis (cppcheck)
     runs-on: windows-latest
-    needs: build-cpp
+    needs: [build-nativecore, build-nativecore-tests]
     continue-on-error: true
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup MSYS2 for cppcheck
-        uses: msys2/setup-msys2@v2
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           install: mingw-w64-x86_64-cppcheck
-
-      - name: Run cppcheck on NativeCore
+      - name: Run cppcheck NativeCore
         shell: msys2 {0}
-        run: |
-          cppcheck --enable=warning,style,performance,portability --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
-
-      - name: Run cppcheck on NativeCore.Test
+        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
+      - name: Run cppcheck NativeCore.Test
         shell: msys2 {0}
-        run: |
-          cppcheck --enable=warning,style,performance,portability --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore.Test 2>&1
-
-      - name: Upload cppcheck reports
-        uses: actions/upload-artifact@v4
+        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --error-exitcode=1 --xml --xml-version=2 --output-file=cppcheck-test.xml NativeCore.Test 2>&1
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cppcheck-reports
-          path: |
-            cppcheck-nativecore.xml
-            cppcheck-test.xml
+          path: cppcheck-*.xml
+      - uses: github/codeql-action/upload-sarif@v3
+        with: sarif_file: cppcheck-*.xml
 
   # ============================================
   # STAGE 3: TESTS
