@@ -109,11 +109,16 @@ jobs:
       - name: Run analyzers & upload SARIF
         run: |
           mkdir sarif
-          dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=sarif/core.sarif
-          dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=sarif/tests.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: sarif/*.sarif
+          dotnet build Core/Core.csproj -c Release --no-restore `
+            /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest `
+            /p:ReportAnalyzer=true /p:RunAnalyzers=true `
+            /p:AnalyzerDiagnosticOutput=sarif `
+            /p:AnalyzerResultsPath=sarif/core.sarif
+          dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore `
+            /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest `
+            /p:ReportAnalyzer=true /p:RunAnalyzers=true `
+            /p:AnalyzerDiagnosticOutput=sarif `
+            /p:AnalyzerResultsPath=sarif/tests.sarif
 
   quality-cpp-format:
     name: C++ Code Formatting
@@ -161,17 +166,23 @@ jobs:
         with:
           msystem: MINGW64
           install: mingw-w64-x86_64-cppcheck
+
       - name: Run cppcheck NativeCore
         shell: msys2 {0}
-        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 --output-file=cppcheck-nativecore.xml NativeCore 2>&1
+        run: |
+          cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore 2> cppcheck-nativecore.xml
+
       - name: Run cppcheck NativeCore.Test
         shell: msys2 {0}
-        run: cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 --output-file=cppcheck-test.xml NativeCore.Test 2>&1
+        run: |
+          cppcheck --enable=all --inline-suppr --suppress=missingIncludeSystem --xml --xml-version=2 NativeCore.Test 2> cppcheck-test.xml
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cppcheck-reports
           path: cppcheck-*.xml
+
       - uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: cppcheck-*.xml
