@@ -108,11 +108,12 @@ jobs:
       - run: dotnet restore Core.Tests/Core.Tests.csproj
       - name: Run analyzers & upload SARIF
         run: |
-          dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=core.sarif
-          dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=tests.sarif
+          mkdir sarif
+          dotnet build Core/Core.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=sarif/core.sarif
+          dotnet build Core.Tests/Core.Tests.csproj -c Release --no-restore /p:EnforceCodeStyleInBuild=true /p:AnalysisLevel=latest /p:ReportAnalyzer=true /p:RunAnalyzers=true /p:AnalyzerDiagnosticOutput=sarif /p:AnalyzerResultsPath=sarif/tests.sarif
       - uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: '*.sarif'
+          sarif_file: sarif/*.sarif
 
   quality-cpp-format:
     name: C++ Code Formatting
